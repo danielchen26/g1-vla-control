@@ -81,6 +81,10 @@
         <td><span class="pill todo"><i></i>待完成</span></td>
         <td class="muted">仅在仿真安全门全部通过后进行</td></tr></tbody></table></section>
 <section class="glass section"><div class="section-head"><div><h2>验证历史</h2><p>每次自动验证后重新生成。</p></div></div><div class="timeline"><div class="timeline-item">
+          <div class="timeline-dot"></div><div><time>2026-08-10 17:57 EDT</time>
+          <h4>Validation run</h4><p>已从公开 GitHub URL 使用 --recurse-submodules 全新 clone，并在干净副本中验证 9/9 自动测试通过；两个官方 submodule revision 均可复现。</p></div>
+        </div>
+<div class="timeline-item">
           <div class="timeline-dot"></div><div><time>2026-08-10 17:55 EDT</time>
           <h4>Validation run</h4><p>项目已发布到 GitHub Public Repository：danielchen26/g1-vla-control；源码、测试、验证证据、HTML App 与两个官方模型 submodule 均已推送。</p></div>
         </div>
@@ -125,7 +129,7 @@
           <h4>Local control pipeline established</h4><p>Action schema, adaptive governor, dual-arm IK and baseline/adaptive MuJoCo runs completed.</p></div>
         </div></div></section>
 <section class="glass section notice"><b>当前边界：</b> 官方 Dex1-1、场景、相机、动作 schema、IK 与本地动力学已经有可重复证据。真实 OpenPI checkpoint 尚未加载，因此当前结果不能证明 VLA 会完成叠积木，也不能证明真机安全。</section>
-</div><div class="footer">生成于 2026-08-10 17:55:41 EDT · <a href="https://github.com/danielchen26/g1-vla-control" style="color:var(--cyan)">github.com/danielchen26/g1-vla-control</a></div></main><script>
+</div><div class="footer">生成于 2026-08-10 17:57:02 EDT · <a href="https://github.com/danielchen26/g1-vla-control" style="color:var(--cyan)">github.com/danielchen26/g1-vla-control</a></div></main><script>
 const buttons=[...document.querySelectorAll('.tab-btn')];
 const panels=[...document.querySelectorAll('.tab-panel')];
 function selectTab(name,updateHash=true){buttons.forEach(b=>b.classList.toggle('active',b.dataset.tab===name));panels.forEach(p=>p.classList.toggle('active',p.dataset.panel===name));if(updateHash)history.replaceState(null,'','#'+name);window.scrollTo({top:document.querySelector('.tabs').offsetTop-12,behavior:'smooth'});}

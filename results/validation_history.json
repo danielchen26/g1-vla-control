@@ -53,5 +53,10 @@
     "time": "2026-08-10 17:55 EDT",
     "title": "Validation run",
     "detail": "项目已发布到 GitHub Public Repository：danielchen26/g1-vla-control；源码、测试、验证证据、HTML App 与两个官方模型 submodule 均已推送。"
+  },
+  {
+    "time": "2026-08-10 17:57 EDT",
+    "title": "Validation run",
+    "detail": "已从公开 GitHub URL 使用 --recurse-submodules 全新 clone，并在干净副本中验证 9/9 自动测试通过；两个官方 submodule revision 均可复现。"
   }
 ]
