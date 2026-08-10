@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+
+# macOS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# Secrets and local runtime
+.env
+.env.*
+*.log
+wandb/
+checkpoints/
+
+# Public dataset reference videos are reproducible and not source code
+reference/

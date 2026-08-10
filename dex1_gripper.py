@@ -1,0 +1,121 @@
+"""Official Unitree Dex1-1 model integration and VLA command mapping."""
+
+from __future__ import annotations
+
+from pathlib import Path
+import math
+import mujoco
+import numpy as np
+
+ROOT = Path(__file__).resolve().parent
+DEX1_URDF = ROOT / "third_party" / "dex1_1_service" / "urdf" / "dex1_1.urdf"
+MOTOR_MIN_RAD = 0.0
+MOTOR_MAX_RAD = 5.5
+JAW_MIN_M = -0.020
+JAW_MAX_M = 0.0245
+
+
+def motor_radians_to_jaw_position(command: float) -> float:
+    """Map the real Dex1 motor convention to the URDF prismatic joint.
+
+    Unitree's example drives the calibrated motor through approximately
+    0..5.5 rad. The URDF fingers move symmetrically over -0.020..0.0245 m.
+    """
+    fraction = np.clip(
+        (float(command) - MOTOR_MIN_RAD) / (MOTOR_MAX_RAD - MOTOR_MIN_RAD),
+        0.0,
+        1.0,
+    )
+    return float(JAW_MIN_M + fraction * (JAW_MAX_M - JAW_MIN_M))
+
+
+def _remove_articulated_hands(spec: mujoco.MjSpec) -> None:
+    # Delete actuators first so no transmission refers to deleted hand joints.
+    for actuator in list(spec.actuators):
+        if "_hand_" in actuator.name:
+            spec.delete(actuator)
+
+    hand_roots = (
+        "left_hand_thumb_0_link", "left_hand_middle_0_link", "left_hand_index_0_link",
+        "right_hand_thumb_0_link", "right_hand_middle_0_link", "right_hand_index_0_link",
+    )
+    for name in hand_roots:
+        body = spec.body(name)
+        if body is not None:
+            spec.delete(body)
+
+    # Palm meshes are direct geoms on wrist_yaw, not child bodies.
+    for side in ("left", "right"):
+        wrist = spec.body(f"{side}_wrist_yaw_link")
+        for geom in list(wrist.geoms):
+            if "hand_palm" in geom.meshname or "rubber_hand" in geom.meshname:
+                spec.delete(geom)
+
+
+def _attach_one(spec: mujoco.MjSpec, side: str) -> None:
+    wrist = spec.body(f"{side}_wrist_yaw_link")
+    if wrist is None:
+        raise RuntimeError(f"Missing {side} wrist body")
+
+    # Dex1's finger direction is +Y in its URDF. Rotate it onto the G1 wrist's
+    # forward +X axis and mount just beyond the wrist-yaw housing.
+    yaw = -math.pi / 2 if side == "left" else math.pi / 2
+    mount = wrist.add_frame(
+        name=f"{side}_dex1_mount",
+        pos=[0.065, 0.0, 0.0],
+        euler=[0.0, 0.0, yaw],
+    )
+    child = mujoco.MjSpec.from_file(str(DEX1_URDF))
+    child.compiler.meshdir = ""
+    for mesh in child.meshes:
+        mesh.file = str(DEX1_URDF.parent / mesh.file)
+    spec.attach(child, prefix=f"{side}_dex1_", frame=mount)
+
+    for finger in ("Joint1_1", "Joint2_1"):
+        joint_name = f"{side}_dex1_{finger}"
+        actuator = spec.add_actuator(
+            name=f"{side}_dex1_{finger}_actuator",
+            target=joint_name,
+            trntype=mujoco.mjtTrn.mjTRN_JOINT,
+            ctrllimited=1,
+            ctrlrange=[JAW_MIN_M, JAW_MAX_M],
+            forcelimited=1,
+            forcerange=[-20.0, 20.0],
+        )
+        actuator.set_to_position(kp=450.0, kv=12.0)
+
+
+def replace_hands_with_dex1(spec: mujoco.MjSpec) -> None:
+    if not DEX1_URDF.exists():
+        raise FileNotFoundError(f"Official Dex1-1 URDF not found: {DEX1_URDF}")
+    _remove_articulated_hands(spec)
+    _attach_one(spec, "left")
+    _attach_one(spec, "right")
+
+
+class Dex1Controller:
+    """Maps the two VLA gripper channels to four symmetric finger actuators."""
+
+    def __init__(self, model: mujoco.MjModel):
+        self.model = model
+        self.actuators: dict[str, np.ndarray] = {}
+        for side in ("left", "right"):
+            ids = []
+            for finger in ("Joint1_1", "Joint2_1"):
+                name = f"{side}_dex1_{finger}_actuator"
+                actuator_id = mujoco.mj_name2id(
+                    model, mujoco.mjtObj.mjOBJ_ACTUATOR, name
+                )
+                if actuator_id < 0:
+                    raise RuntimeError(f"Missing Dex1 actuator: {name}")
+                ids.append(actuator_id)
+            self.actuators[side] = np.asarray(ids, dtype=int)
+
+    def set_motor_commands(
+        self, data: mujoco.MjData, left_command: float, right_command: float
+    ) -> None:
+        data.ctrl[self.actuators["left"]] = motor_radians_to_jaw_position(left_command)
+        data.ctrl[self.actuators["right"]] = motor_radians_to_jaw_position(right_command)
+
+    def set_open(self, data: mujoco.MjData) -> None:
+        self.set_motor_commands(data, MOTOR_MAX_RAD, MOTOR_MAX_RAD)

@@ -1,0 +1,18 @@
+{
+  "mode": "baseline",
+  "success": true,
+  "duration": 4.001999999999781,
+  "scale_start": 1.0,
+  "scale_max": 1.0,
+  "scale_end": 1.0,
+  "left_final_error_m": 0.019546705206504957,
+  "right_final_error_m": 0.003282531918676396,
+  "pelvis_height_m": 0.7913740856623809,
+  "stability_score": 0.8850419538328373,
+  "max_joint_speed_rad_s": 0.468863003914286,
+  "max_joint_acceleration_rad_s2": 12.814848344542218,
+  "left_position_error": 0.01954787511879472,
+  "left_orientation_error": 0.0009226916910317823,
+  "right_position_error": 0.0032854127317416674,
+  "right_orientation_error": 0.00021488435933072637
+}

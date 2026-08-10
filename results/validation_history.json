@@ -1,0 +1,52 @@
+[
+  {
+    "time": "2026-08-10 16:03 EDT",
+    "title": "Local control pipeline established",
+    "detail": "Action schema, adaptive governor, dual-arm IK and baseline/adaptive MuJoCo runs completed."
+  },
+  {
+    "time": "2026-08-10 16:03 EDT",
+    "title": "Validation run",
+    "detail": "Initial HTML dashboard created from verified local results."
+  },
+  {
+    "time": "2026-08-10 16:03 EDT",
+    "title": "Validation run",
+    "detail": "4/4 unit tests and both baseline/adaptive G1 dynamics runs passed."
+  },
+  {
+    "time": "2026-08-10 16:21 EDT",
+    "title": "Validation run",
+    "detail": "7/7 unit tests and both baseline/adaptive G1 dynamics runs passed."
+  },
+  {
+    "time": "2026-08-10 17:28 EDT",
+    "title": "Validation run",
+    "detail": "9/9 unit tests and both baseline/adaptive G1 dynamics runs passed."
+  },
+  {
+    "time": "2026-08-10 17:28 EDT",
+    "title": "Validation run",
+    "detail": "已使用 Unitree 官方 Dex1-1 URDF/STL 替换原手模型，完成左右夹爪映射、三路相机重挂载、9/9 测试及 HTML Workflow/代码状态更新。"
+  },
+  {
+    "time": "2026-08-10 17:35 EDT",
+    "title": "Validation run",
+    "detail": "已核对 Hugging Face checkpoint 文件树：权重和 16-D state/action norm_stats 均已发布；当前最小阻塞项收敛为 OpenPI commit、TrainConfig/DataConfig、自定义 joint↔EEF transform 与推理字段映射。"
+  },
+  {
+    "time": "2026-08-10 17:39 EDT",
+    "title": "Validation run",
+    "detail": "已将真实 VLA 所需外部信息整理为逐项清单：OpenPI commit/依赖、完整 Config、数据 transform、推理字段契约、golden sample 与精确仿真标定。"
+  },
+  {
+    "time": "2026-08-10 17:43 EDT",
+    "title": "Validation run",
+    "detail": "HTML App 已升级为四个独立 Tab；新增“VLA 接入需求”专页，集中展示九类详细资料要求和外部信息状态。"
+  },
+  {
+    "time": "2026-08-10 17:55 EDT",
+    "title": "Validation run",
+    "detail": "9/9 项自动测试、baseline/adaptive 动力学和三路相机渲染全部通过。"
+  }
+]

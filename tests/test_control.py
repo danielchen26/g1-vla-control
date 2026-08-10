@@ -1,0 +1,82 @@
+import sys
+from pathlib import Path
+import unittest
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from action_schema import (
+    EEFActionChunk, LEFT_QUAT, RIGHT_QUAT, slerp,
+    mujoco_wxyz_to_vla_xyzw, vla_xyzw_to_mujoco_wxyz,
+)
+from adaptive_retimer import AdaptiveChunkExecutor, AdaptiveRetimer
+from vla_stub import make_reach_chunk
+
+
+class ActionSchemaTests(unittest.TestCase):
+    def test_slerp_is_normalized_and_shortest_path(self):
+        q = slerp(np.array([0.0, 0, 0, 1.0]), np.array([0, -0.707, 0, -0.707]), 0.5)
+        self.assertAlmostEqual(np.linalg.norm(q), 1.0, places=8)
+        self.assertGreater(q[3], 0.0)
+
+    def test_mujoco_quaternion_boundary_round_trip(self):
+        wxyz = np.array([0.9, 0.1, -0.2, 0.3])
+        np.testing.assert_allclose(
+            vla_xyzw_to_mujoco_wxyz(mujoco_wxyz_to_vla_xyzw(wxyz)), wxyz
+        )
+
+    def test_chunk_rejects_bad_dimension(self):
+        with self.assertRaises(ValueError):
+            EEFActionChunk(np.array([0.0, 1.0]), np.zeros((2, 15)))
+
+
+class RetimerTests(unittest.TestCase):
+    def setUp(self):
+        self.left_start = np.array([0.0, 0.2, 0.7])
+        self.right_start = np.array([0.0, -0.2, 0.7])
+        self.left_target = np.array([0.32, 0.25, 0.8])
+        self.right_target = np.array([0.22, -0.24, 0.76])
+        quaternion = np.array([0.0, 0.0, 0.0, 1.0])
+        self.chunk = make_reach_chunk(
+            self.left_start, quaternion, self.right_start, quaternion,
+            self.left_target, self.right_target,
+        )
+
+    def test_offline_retiming_preserves_path_and_quaternions(self):
+        result = AdaptiveRetimer().retime(
+            self.chunk, self.left_target, self.right_target
+        )
+        np.testing.assert_allclose(result.chunk.actions, self.chunk.actions)
+        np.testing.assert_allclose(
+            np.linalg.norm(result.chunk.actions[:, LEFT_QUAT], axis=1), 1.0
+        )
+        np.testing.assert_allclose(
+            np.linalg.norm(result.chunk.actions[:, RIGHT_QUAT], axis=1), 1.0
+        )
+        self.assertGreater(result.scale_profile.max(), 1.0)
+        self.assertLess(result.scale_profile[-1], 1.0)
+
+    def test_online_governor_accelerates_far_and_slows_near(self):
+        executor = AdaptiveChunkExecutor()
+        executor.reset(self.chunk)
+        far_scales = []
+        for _ in range(100):
+            _, scale, _ = executor.step(
+                self.chunk, 0.01, self.left_start, self.right_start,
+                self.left_target, self.right_target, stability=1.0,
+            )
+            far_scales.append(scale)
+        self.assertGreater(far_scales[-1], 1.5)
+        near_scales = []
+        for _ in range(100):
+            _, scale, _ = executor.step(
+                self.chunk, 0.01, self.left_target, self.right_target,
+                self.left_target, self.right_target, stability=1.0,
+            )
+            near_scales.append(scale)
+        self.assertLess(near_scales[-1], 0.6)
+
+
+if __name__ == "__main__":
+    unittest.main()
