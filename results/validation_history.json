@@ -88,5 +88,10 @@
     "time": "2026-08-10 22:30 EDT",
     "title": "Validation run",
     "detail": "GitHub Actions Ubuntu 22.04 headless-smoke 已通过：13 项测试、baseline/adaptive 动力学、三路 OSMesa 渲染、HTML 完整性检查和证据 artifact 全部成功。"
+  },
+  {
+    "time": "2026-08-10 22:35 EDT",
+    "title": "Validation run",
+    "detail": "已在“深度验证”Tab 增加两个 GitHub Actions Run 的独立卡片与直达链接：31452479374 和 31452596513，二者均为 SUCCESS。"
   }
 ]
