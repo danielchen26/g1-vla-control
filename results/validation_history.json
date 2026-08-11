@@ -113,5 +113,20 @@
     "time": "2026-08-11 10:04 EDT",
     "title": "Validation run",
     "detail": "Gate-A 提交的 GitHub Actions Run 31499342006 已通过：Ubuntu headless 15/15 测试、动力学、三路渲染、HTML 检查与 artifact 全部成功。"
+  },
+  {
+    "time": "2026-08-11 12:28 EDT",
+    "title": "Validation run",
+    "detail": "完成 comprehensive deep validation：100 episodes/95,966 帧数据审计、episode-0 全轨迹回放、250 个真实数据 IK 目标、1000 组宽域工作空间压力测试、Dex1 指尖/抓持、5 档 Gate-A.2 EEF/Joint 安全调速、168 个唯一 target 的 phase-aware preflight、30 秒动力学、20 组随机化、5 档外部扰动、三路视觉域对照及 Orbax metadata 审计。"
+  },
+  {
+    "time": "2026-08-11 12:28 EDT",
+    "title": "Validation run",
+    "detail": "17/17 项自动测试、baseline/adaptive 动力学和三路相机渲染全部通过。"
+  },
+  {
+    "time": "2026-08-11 12:30 EDT",
+    "title": "Validation run",
+    "detail": "完成 Gate-A.2 recorded-policy proxy 验证：14-D 逐关节 P99 command filter 五档通过，phase-aware preflight free-space 44/68、grasp-policy 59/68，OOD 100% 拒绝；actual joint jerk 仍在 1.25× 出现 100k rad/s³ 尖峰，未宣称真实 VLA 或真机安全。"
   }
 ]

@@ -4,7 +4,7 @@
 
 面向 Apple M4 Air 24 GB 的本地 MuJoCo 验证环境。真实 OpenPI VLA 计划在 Ubuntu NVIDIA 主机运行，本机负责场景、三路相机、动作契约、IK、Dex1 和评测。
 
-> 当前边界：仓库中的轨迹是确定性 Stub，并非真实 VLA 输出。真实 checkpoint 仍缺 OpenPI config 和 joint↔EEF transform。
+> 当前边界：验证输入分为确定性 Stub 和公开 episode 的 recorded-policy proxy，两者都不是真实 VLA 在线输出。真实 checkpoint 仍缺 OpenPI config 和精确 joint↔EEF transform。
 
 ## 安装
 
@@ -41,7 +41,8 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - XYZ 插值、Quaternion SLERP、G1 双臂 IK
 - 自动测试、JSON 证据、验证历史和现代化 HTML App
 - 可选 adaptive speed 模块；真实 VLA smoke test 可以完全绕过它
-- Gate-A sim-only EEF v/a/jerk safety filter 与 conservative target preflight
+- Gate-A sim-only EEF v/a/jerk safety filter
+- Gate-A.2 14-D 逐关节 command v/a/jerk filter 与 phase-aware target preflight
 
 ## 尚未完成
 
@@ -49,7 +50,7 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - 模型作者的 OpenPI training config、repack transform 和 EEF 坐标定义
 - 训练仿真器的精确相机内外参与视觉域
 - 真实 VLA action chunk 的离线可视化与闭环执行
-- Joint-level acceleration/jerk limiter 与 phase-aware 碰撞规则
+- 能约束 actual qvel acceleration/jerk 的真实低层控制器接口与反馈层
 - 真实 VLA 抓取/堆叠成功率
 - 真机 G1 EDU 测试
 
@@ -80,7 +81,13 @@ Angular speed   1.044 rad/s
 Gripper speed   5.793 rad/s
 ```
 
-Episode 0 在 `0.50× / 0.75× / 1.00× / 1.25× / 1.50×` 五档回放中，filtered EEF command 均满足 hard limits，最终 endpoint 误差均小于 0.15 mm。保守 preflight 对 100 个 OOD 目标全部拒绝，但训练内只接受 31/68；实际关节 jerk 仍最高约 45k rad/s³。因此下一步是 joint-level limiter 和 phase-aware collision gate，而不是提高最大 scale。
+Episode 0 在 `0.50× / 0.75× / 1.00× / 1.25× / 1.50×` 五档回放中，EEF 与 14-D joint command 均满足各自训练 target P99 limits，最终 endpoint 误差均小于 0.91 mm。Phase-aware preflight 对 100 个 OOD 目标全部拒绝。公开数据没有 phase 标签：free-space 视图接受 44/68；假定全部为 grasp 的宽松视图接受 59/68。后者不是已恢复的真实任务阶段，并包含明确记录的 torso/shoulder 模型重叠 allowlist。
+
+但 command 合规不等于 actual dynamics 合规：1.25× 下 MuJoCo actual joint jerk 出现约 100k rad/s³。尖峰发生在 `right_shoulder_roll_joint`、t=10.538 s，事件帧没有当前策略定义的 forbidden contact，指向 position actuator/controller transient，而不是 joint command 超限。因此当前不建议把 `≥1.25×` 作为候选安全档，也不能把这些数据解释为真机限制。
+
+### 为什么没加载 VLA 仍能做 Gate A/A.2
+
+公开 episode 的 joint action 经候选 FK 重建为 16-D EEF，作为 **recorded-policy proxy** 输入同一个下游链路。这能验证 schema、坐标转换、filter、IK、command limits 和拒绝逻辑，但不能验证真实 VLA 的 chunk timing、延迟、输出分布、视觉闭环或叠积木成功率。Gate B 会用带时间戳的真实 OpenPI chunk 替换该输入源并重跑全部测试。
 
 一键重跑所有本地可行验证：
 
@@ -122,7 +129,9 @@ Ubuntu NVIDIA · OpenPI checkpoint
                   ↓
 硬安全裁剪（第一轮不启用 adaptive speed）
                   ↓
-G1 双臂 IK + Dex1 夹爪映射
+G1 双臂 IK
+                  ↓
+14-D Joint command v/a/jerk filter + Dex1 映射
                   ↓
 MuJoCo 闭环重规划与任务评测
 ```

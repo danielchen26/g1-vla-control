@@ -16,8 +16,9 @@ from dataset_contract_audit import ARM_JOINTS, CACHE, _fk_transform, download_pu
 from dex1_gripper import Dex1Controller
 from g1_dual_arm_ik import G1DualArmIK, orientation_error
 from safety_governor import (
-    G1TargetPreflight, JerkLimitedActionFilter, MotionEnvelope,
-    forbidden_manipulator_contact,
+    G1TargetPreflight, JerkLimitedActionFilter, JerkLimitedJointFilter,
+    JointMotionEnvelope, MotionEnvelope, forbidden_manipulator_contact,
+    manipulator_contact_violations,
 )
 from stack_scene import build_model, reset_to_reference_pose, reset_to_stand
 
@@ -62,6 +63,7 @@ def _run_scale(
     initial_grippers: np.ndarray,
     scale: float,
     use_filter: bool,
+    use_joint_filter: bool = False,
 ) -> dict:
     model = build_model()
     data = mujoco.MjData(model)
@@ -74,8 +76,16 @@ def _run_scale(
     initial = _command_from_current(solver, initial_grippers)
     action_filter = JerkLimitedActionFilter(envelope)
     action_filter.reset(initial)
+    joint_envelope = JointMotionEnvelope()
+    joint_filter = JerkLimitedJointFilter(joint_envelope)
     pelvis = _id(model, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
     arm_dofs = np.concatenate((solver.left["dof"], solver.right["dof"]))
+    arm_qpos = np.concatenate((solver.left["qpos"], solver.right["qpos"]))
+    arm_actuators = np.concatenate((solver.left["actuator"], solver.right["actuator"]))
+    joint_ids = np.concatenate((solver.left["joint"], solver.right["joint"]))
+    lower_limits = model.jnt_range[joint_ids, 0]
+    upper_limits = model.jnt_range[joint_ids, 1]
+    joint_filter.reset(data.qpos[arm_qpos])
     dt = model.opt.timestep
     path_duration = float(chunk.timestamps[-1] / scale)
     total_duration = path_duration + 2.0
@@ -83,25 +93,38 @@ def _run_scale(
     previous_command = initial.copy()
     previous_velocity = np.zeros((2, 3))
     previous_acceleration = np.zeros((2, 3))
+    previous_joint_command = data.qpos[arm_qpos].copy()
+    previous_joint_command_velocity = np.zeros(14)
+    previous_joint_command_acceleration = np.zeros(14)
     previous_arm_velocity = data.qvel[arm_dofs].copy()
-    previous_arm_acceleration = np.zeros(14)
+    # mj_forward has already computed the acceleration implied by the initial
+    # held pose. This avoids counting an artificial 0→qacc jump at frame zero.
+    previous_arm_acceleration = data.qacc[arm_dofs].copy()
     maxima = {
         "command_speed_m_s": 0.0,
         "command_acceleration_m_s2": 0.0,
         "command_jerk_m_s3": 0.0,
         "command_angular_speed_rad_s": 0.0,
         "command_gripper_speed_rad_s": 0.0,
+        "joint_command_speed_rad_s": 0.0,
+        "joint_command_acceleration_rad_s2": 0.0,
+        "joint_command_jerk_rad_s3": 0.0,
+        "joint_command_speed_limit_ratio": 0.0,
+        "joint_command_acceleration_limit_ratio": 0.0,
+        "joint_command_jerk_limit_ratio": 0.0,
         "actual_joint_speed_rad_s": 0.0,
         "actual_joint_acceleration_rad_s2": 0.0,
         "actual_joint_jerk_rad_s3": 0.0,
         "desired_to_filtered_position_lag_m": 0.0,
         "actual_to_filtered_position_error_m": 0.0,
     }
-    contact_steps = 0
+    contact_steps_free_space = 0
+    contact_steps_manipulation = 0
     minimum_pelvis = float(data.xpos[pelvis, 2])
     step_count = int(np.ceil(total_duration / dt))
     command = initial.copy()
     desired = initial.copy()
+    worst_actual_jerk_event: dict = {}
     for step in range(step_count):
         elapsed = step * dt
         path_time = min(float(chunk.timestamps[-1]), elapsed * scale)
@@ -153,6 +176,50 @@ def _run_scale(
         data.ctrl[:] = hold_control
         controller.set_motor_commands(data, command[14], command[15])
         solver.step(command[:7], command[7:14], dt)
+        desired_joint_command = solver.q_target[arm_qpos].copy()
+        if use_joint_filter:
+            joint_command, _ = joint_filter.step(
+                desired_joint_command, dt, lower_limits, upper_limits
+            )
+            data.ctrl[arm_actuators] = joint_command
+            # Keep the IK proposal state separate from the governed actuator
+            # target; feeding the governed value back here would apply the
+            # position gain twice and make the arm artificially sluggish.
+        else:
+            joint_command = desired_joint_command
+        joint_command_velocity = (joint_command - previous_joint_command) / dt
+        joint_command_acceleration = (
+            joint_command_velocity - previous_joint_command_velocity
+        ) / dt
+        joint_command_jerk = (
+            joint_command_acceleration - previous_joint_command_acceleration
+        ) / dt
+        maxima["joint_command_speed_rad_s"] = max(
+            maxima["joint_command_speed_rad_s"],
+            float(np.abs(joint_command_velocity).max()),
+        )
+        maxima["joint_command_acceleration_rad_s2"] = max(
+            maxima["joint_command_acceleration_rad_s2"],
+            float(np.abs(joint_command_acceleration).max()),
+        )
+        maxima["joint_command_jerk_rad_s3"] = max(
+            maxima["joint_command_jerk_rad_s3"],
+            float(np.abs(joint_command_jerk).max()),
+        )
+        maxima["joint_command_speed_limit_ratio"] = max(
+            maxima["joint_command_speed_limit_ratio"],
+            float(np.max(np.abs(joint_command_velocity) / joint_filter.max_speed)),
+        )
+        maxima["joint_command_acceleration_limit_ratio"] = max(
+            maxima["joint_command_acceleration_limit_ratio"],
+            float(np.max(
+                np.abs(joint_command_acceleration) / joint_filter.max_acceleration
+            )),
+        )
+        maxima["joint_command_jerk_limit_ratio"] = max(
+            maxima["joint_command_jerk_limit_ratio"],
+            float(np.max(np.abs(joint_command_jerk) / joint_filter.max_jerk)),
+        )
         mujoco.mj_step(model, data)
         left_actual = solver.pose("left")
         right_actual = solver.pose("right")
@@ -172,14 +239,38 @@ def _run_scale(
         maxima["actual_joint_acceleration_rad_s2"] = max(
             maxima["actual_joint_acceleration_rad_s2"], float(np.abs(arm_acceleration).max())
         )
+        actual_jerk_peak = float(np.abs(arm_jerk).max())
+        if actual_jerk_peak > maxima["actual_joint_jerk_rad_s3"]:
+            joint_index = int(np.argmax(np.abs(arm_jerk)))
+            worst_actual_jerk_event = {
+                "time_s": elapsed,
+                "joint": ARM_JOINTS[joint_index],
+                "jerk_rad_s3": actual_jerk_peak,
+                "acceleration_rad_s2": float(arm_acceleration[joint_index]),
+                "velocity_rad_s": float(arm_velocity[joint_index]),
+                "free_space_contact_reasons": list(
+                    manipulator_contact_violations(model, data, "free_space")
+                ),
+                "manipulation_contact_reasons": list(
+                    manipulator_contact_violations(model, data, "grasp")
+                ),
+            }
         maxima["actual_joint_jerk_rad_s3"] = max(
-            maxima["actual_joint_jerk_rad_s3"], float(np.abs(arm_jerk).max())
+            maxima["actual_joint_jerk_rad_s3"], actual_jerk_peak
         )
-        contact_steps += int(forbidden_manipulator_contact(model, data))
+        contact_steps_free_space += int(
+            forbidden_manipulator_contact(model, data, "free_space")
+        )
+        contact_steps_manipulation += int(
+            forbidden_manipulator_contact(model, data, "grasp")
+        )
         minimum_pelvis = min(minimum_pelvis, float(data.xpos[pelvis, 2]))
         previous_command = command.copy()
         previous_velocity = velocity
         previous_acceleration = acceleration
+        previous_joint_command = joint_command
+        previous_joint_command_velocity = joint_command_velocity
+        previous_joint_command_acceleration = joint_command_acceleration
         previous_arm_velocity = arm_velocity
         previous_arm_acceleration = arm_acceleration
 
@@ -196,16 +287,29 @@ def _run_scale(
         and maxima["command_angular_speed_rad_s"] <= envelope.max_angular_speed_rad_s + 1e-6
         and maxima["command_gripper_speed_rad_s"] <= envelope.max_gripper_speed_rad_s + 1e-5
     ) if use_filter else False
+    joint_hard_limits_pass = bool(
+        maxima["joint_command_speed_limit_ratio"] <= 1.0 + 1e-6
+        and maxima["joint_command_acceleration_limit_ratio"] <= 1.0 + 1e-5
+        and maxima["joint_command_jerk_limit_ratio"] <= 1.0 + 1e-4
+    ) if use_joint_filter else False
     return {
         "scale": scale,
         "filter_enabled": use_filter,
+        "joint_filter_enabled": use_joint_filter,
         "nominal_path_duration_s": path_duration,
         "simulated_duration_s": step_count * dt,
-        "hard_command_limits_pass": hard_limits_pass,
+        "hard_command_limits_pass": bool(
+            hard_limits_pass and (joint_hard_limits_pass if use_joint_filter else True)
+        ),
+        "eef_hard_limits_pass": hard_limits_pass,
+        "joint_hard_limits_pass": joint_hard_limits_pass,
         "endpoint_error_m": endpoint_error,
         "minimum_pelvis_height_m": minimum_pelvis,
-        "forbidden_contact_step_rate": contact_steps / step_count,
+        "forbidden_contact_step_rate": contact_steps_manipulation / step_count,
+        "free_space_contact_step_rate": contact_steps_free_space / step_count,
+        "manipulation_contact_step_rate": contact_steps_manipulation / step_count,
         "finite": bool(np.all(np.isfinite(data.qpos)) and np.all(np.isfinite(data.qvel))),
+        "worst_actual_joint_jerk_event": worst_actual_jerk_event,
         "maxima": maxima,
     }
 
@@ -224,7 +328,8 @@ def _preflight_validation(
         for name in ARM_JOINTS
     ])
     pelvis = _id(model, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
-    reasons = Counter()
+    phase_reasons = {phase: Counter() for phase in ("free_space", "grasp")}
+    phase_collisions = {phase: Counter() for phase in ("free_space", "grasp")}
     checked = 0
     for index in range(0, len(states), sample_stride):
         reset_to_reference_pose(model, data)
@@ -234,8 +339,10 @@ def _preflight_validation(
         target = pelvis_vla_action_to_world_mujoco(
             eef_actions[index], data.xpos[pelvis], data.xquat[pelvis]
         )
-        result = gate.check(data, target)
-        reasons[result.reason] += 1
+        for phase in phase_reasons:
+            result = gate.check(data, target, phase=phase)
+            phase_reasons[phase][result.reason] += 1
+            phase_collisions[phase].update(result.collision_reasons)
         checked += 1
 
     reset_to_stand(model, data)
@@ -252,13 +359,24 @@ def _preflight_validation(
             right_q,
             [5.5, 5.5],
         ]
-        result = gate.check(data, target)
+        result = gate.check(data, target, phase="free_space")
         ood_reasons[result.reason] += 1
+    selected_reasons = phase_reasons["grasp"]
     return {
         "in_distribution": {
             "checked_targets": checked,
-            "reason_counts": dict(reasons),
-            "accepted_rate": reasons["accepted"] / checked,
+            "selected_phase": "grasp_policy_view_without_ground_truth_phase_labels",
+            "reason_counts": dict(selected_reasons),
+            "collision_category_counts": dict(phase_collisions["grasp"]),
+            "accepted_rate": selected_reasons["accepted"] / checked,
+            "by_phase": {
+                phase: {
+                    "reason_counts": dict(phase_reasons[phase]),
+                    "collision_category_counts": dict(phase_collisions[phase]),
+                    "accepted_rate": phase_reasons[phase]["accepted"] / checked,
+                }
+                for phase in phase_reasons
+            },
         },
         "out_of_distribution": {
             "checked_targets": ood_samples,
@@ -266,8 +384,9 @@ def _preflight_validation(
             "rejected_rate": 1.0 - ood_reasons["accepted"] / ood_samples,
         },
         "rule": (
-            "Reject unreachable, joint-saturated, table/floor/torso/cross-arm "
-            "contacts; allow Dex1-to-cube contact."
+            "Free-space rejects Dex1-cube contact; grasp/place allows it. All phases "
+            "reject table/floor, torso-elbow, cross-arm and non-adjacent self contact. "
+            "The public-model torso/shoulder-yaw overlap is explicitly allowlisted."
         ),
     }
 
@@ -276,15 +395,21 @@ def main() -> None:
     states, raw_actions, _, chunk = _load_episode_zero()
     eef_actions = _fk_transform(raw_actions)
     envelope = MotionEnvelope()
-    runs = [_run_scale(chunk, states[0, 14:], 1.0, False)]
+    joint_envelope = JointMotionEnvelope()
+    runs = [
+        _run_scale(chunk, states[0, 14:], 1.0, False, False),
+        _run_scale(chunk, states[0, 14:], 1.0, True, False),
+    ]
     for scale in (0.50, 0.75, 1.00, 1.25, 1.50):
-        runs.append(_run_scale(chunk, states[0, 14:], scale, True))
+        runs.append(_run_scale(chunk, states[0, 14:], scale, True, True))
     report = {
         "scope": (
-            "Gate-A simulation-only validation using reconstructed EEF actions. "
-            "No neural VLA checkpoint and no Unitree hardware limits are used."
+            "Gate-A.2 simulation-only validation using public episode-0 actions as "
+            "recorded-policy proxies. No neural VLA checkpoint and no authoritative "
+            "Unitree hardware limits are used."
         ),
         "motion_envelope": envelope.__dict__,
+        "joint_motion_envelope": joint_envelope.__dict__,
         "episode_zero_scale_sweep": runs,
         "preflight_gate": _preflight_validation(states, eef_actions),
     }
@@ -293,13 +418,14 @@ def main() -> None:
     path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
     print(path)
     print(json.dumps({
-        "filtered_runs": len(runs) - 1,
-        "all_filtered_hard_limits_pass": all(
-            run["hard_command_limits_pass"] for run in runs if run["filter_enabled"]
+        "joint_filtered_runs": sum(run["joint_filter_enabled"] for run in runs),
+        "all_joint_filtered_hard_limits_pass": all(
+            run["hard_command_limits_pass"]
+            for run in runs if run["joint_filter_enabled"]
         ),
         "endpoint_errors_m": {
             str(run["scale"]): run["endpoint_error_m"]
-            for run in runs if run["filter_enabled"]
+            for run in runs if run["joint_filter_enabled"]
         },
         "preflight": report["preflight_gate"],
     }, indent=2))

@@ -170,6 +170,90 @@
       "p99": 1.450113952159885,
       "max": 6.767372488975525
     },
+    "raw_joint_target_acceleration_rad_s2": {
+      "p50": 1.4043166302144527,
+      "p95": 6.076437653973699,
+      "p99": 13.545211851596846,
+      "max": 200.83571076393127
+    },
+    "raw_joint_target_jerk_rad_s3": {
+      "p50": 56.01387843489647,
+      "p95": 268.247589468956,
+      "p99": 637.5979296863085,
+      "max": 7550.344884395599
+    },
+    "per_joint_target_p99": {
+      "left_shoulder_pitch_joint": {
+        "speed_rad_s": 0.5335974097251899,
+        "acceleration_rad_s2": 4.827004261314884,
+        "jerk_rad_s3": 219.41059324890423
+      },
+      "left_shoulder_roll_joint": {
+        "speed_rad_s": 0.25256102706771427,
+        "acceleration_rad_s2": 3.1624807929620227,
+        "jerk_rad_s3": 136.37192677706508
+      },
+      "left_shoulder_yaw_joint": {
+        "speed_rad_s": 0.47489201277494447,
+        "acceleration_rad_s2": 4.641246199607864,
+        "jerk_rad_s3": 200.8138172328475
+      },
+      "left_elbow_joint": {
+        "speed_rad_s": 1.145755011588336,
+        "acceleration_rad_s2": 8.887587413191817,
+        "jerk_rad_s3": 411.8246119469445
+      },
+      "left_wrist_roll_joint": {
+        "speed_rad_s": 0.3283918182423809,
+        "acceleration_rad_s2": 4.219851382076749,
+        "jerk_rad_s3": 180.96917249495192
+      },
+      "left_wrist_pitch_joint": {
+        "speed_rad_s": 0.6978073781356231,
+        "acceleration_rad_s2": 5.072448849678051,
+        "jerk_rad_s3": 225.60093384236208
+      },
+      "left_wrist_yaw_joint": {
+        "speed_rad_s": 0.3659658953547479,
+        "acceleration_rad_s2": 3.990433663129808,
+        "jerk_rad_s3": 168.00689399242407
+      },
+      "right_shoulder_pitch_joint": {
+        "speed_rad_s": 0.5531271547079089,
+        "acceleration_rad_s2": 5.032259635627286,
+        "jerk_rad_s3": 228.11008840799354
+      },
+      "right_shoulder_roll_joint": {
+        "speed_rad_s": 0.27247952856123453,
+        "acceleration_rad_s2": 3.0425902828574225,
+        "jerk_rad_s3": 134.31851305067616
+      },
+      "right_shoulder_yaw_joint": {
+        "speed_rad_s": 0.4356530383229257,
+        "acceleration_rad_s2": 4.189361371099949,
+        "jerk_rad_s3": 186.51251681149023
+      },
+      "right_elbow_joint": {
+        "speed_rad_s": 1.1850163936614995,
+        "acceleration_rad_s2": 8.400302454829237,
+        "jerk_rad_s3": 390.8694468671462
+      },
+      "right_wrist_roll_joint": {
+        "speed_rad_s": 0.30498483963310746,
+        "acceleration_rad_s2": 3.7939928029663874,
+        "jerk_rad_s3": 169.4603813812145
+      },
+      "right_wrist_pitch_joint": {
+        "speed_rad_s": 0.728677712380887,
+        "acceleration_rad_s2": 5.347711220383645,
+        "jerk_rad_s3": 231.2592566013337
+      },
+      "right_wrist_yaw_joint": {
+        "speed_rad_s": 0.4314262904226785,
+        "acceleration_rad_s2": 4.4856922421604635,
+        "jerk_rad_s3": 201.4271311461928
+      }
+    },
     "gripper_target_speed_rad_s": {
       "p50": 0.0,
       "p95": 3.8794362545013428,

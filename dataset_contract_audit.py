@@ -137,6 +137,11 @@ def _motion_envelope(
     translation_accelerations = []
     translation_jerks = []
     joint_speeds = []
+    joint_accelerations = []
+    joint_jerks = []
+    per_joint_speeds = []
+    per_joint_accelerations = []
+    per_joint_jerks = []
     gripper_speeds = []
     cursor = 0
     for _, raw_action in raw_episodes:
@@ -170,7 +175,17 @@ def _motion_envelope(
             dot = np.clip(np.abs(np.sum(q0 * q1, axis=1)), 0.0, 1.0)
             per_side_angular.append(2.0 * np.arccos(dot) * 30.0)
         angular_speeds.extend(np.maximum(*per_side_angular))
-        joint_speeds.extend(np.max(np.abs(np.diff(raw_action[:, :14], axis=0) * 30.0), axis=1))
+        joint_velocity = np.diff(raw_action[:, :14], axis=0) * 30.0
+        per_joint_speeds.append(np.abs(joint_velocity))
+        joint_speeds.extend(np.max(np.abs(joint_velocity), axis=1))
+        if len(joint_velocity) > 1:
+            joint_acceleration = np.diff(joint_velocity, axis=0) * 30.0
+            per_joint_accelerations.append(np.abs(joint_acceleration))
+            joint_accelerations.extend(np.max(np.abs(joint_acceleration), axis=1))
+            if len(joint_acceleration) > 1:
+                joint_jerk = np.diff(joint_acceleration, axis=0) * 30.0
+                per_joint_jerks.append(np.abs(joint_jerk))
+                joint_jerks.extend(np.max(np.abs(joint_jerk), axis=1))
         gripper_speeds.extend(np.max(np.abs(np.diff(raw_action[:, 14:], axis=0) * 30.0), axis=1))
 
     def quantiles(values) -> dict:
@@ -188,6 +203,22 @@ def _motion_envelope(
         "eef_translation_acceleration_m_s2": quantiles(translation_accelerations),
         "eef_translation_jerk_m_s3": quantiles(translation_jerks),
         "raw_joint_target_speed_rad_s": quantiles(joint_speeds),
+        "raw_joint_target_acceleration_rad_s2": quantiles(joint_accelerations),
+        "raw_joint_target_jerk_rad_s3": quantiles(joint_jerks),
+        "per_joint_target_p99": {
+            name: {
+                "speed_rad_s": float(speed),
+                "acceleration_rad_s2": float(acceleration),
+                "jerk_rad_s3": float(jerk),
+            }
+            for name, speed, acceleration, jerk in zip(
+                ARM_JOINTS,
+                np.quantile(np.concatenate(per_joint_speeds), 0.99, axis=0),
+                np.quantile(np.concatenate(per_joint_accelerations), 0.99, axis=0),
+                np.quantile(np.concatenate(per_joint_jerks), 0.99, axis=0),
+                strict=True,
+            )
+        },
         "gripper_target_speed_rad_s": quantiles(gripper_speeds),
         "warning": (
             "Finite differences of recorded targets, not authoritative hardware limits. "

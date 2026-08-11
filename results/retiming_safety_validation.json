@@ -1,5 +1,5 @@
 {
-  "scope": "Gate-A simulation-only validation using reconstructed EEF actions. No neural VLA checkpoint and no Unitree hardware limits are used.",
+  "scope": "Gate-A.2 simulation-only validation using public episode-0 actions as recorded-policy proxies. No neural VLA checkpoint and no authoritative Unitree hardware limits are used.",
   "motion_envelope": {
     "max_eef_speed_m_s": 0.227,
     "max_eef_acceleration_m_s2": 2.76,
@@ -8,23 +8,94 @@
     "max_gripper_speed_rad_s": 5.793,
     "source": "public training-target P99; simulation-only"
   },
+  "joint_motion_envelope": {
+    "max_speeds_rad_s": [
+      0.533597,
+      0.252561,
+      0.474892,
+      1.145755,
+      0.328392,
+      0.697807,
+      0.365966,
+      0.553127,
+      0.27248,
+      0.435653,
+      1.185016,
+      0.304985,
+      0.728678,
+      0.431426
+    ],
+    "max_accelerations_rad_s2": [
+      4.827004,
+      3.162481,
+      4.641246,
+      8.887587,
+      4.219851,
+      5.072449,
+      3.990434,
+      5.03226,
+      3.04259,
+      4.189361,
+      8.400302,
+      3.793993,
+      5.347711,
+      4.485692
+    ],
+    "max_jerks_rad_s3": [
+      219.410593,
+      136.371927,
+      200.813817,
+      411.824612,
+      180.969172,
+      225.600934,
+      168.006894,
+      228.110088,
+      134.318513,
+      186.512517,
+      390.869447,
+      169.460381,
+      231.259257,
+      201.427131
+    ],
+    "source": "public per-joint training-target P99; simulation-only"
+  },
   "episode_zero_scale_sweep": [
     {
       "scale": 1.0,
       "filter_enabled": false,
+      "joint_filter_enabled": false,
       "nominal_path_duration_s": 22.566667556762695,
       "simulated_duration_s": 24.568,
       "hard_command_limits_pass": false,
+      "eef_hard_limits_pass": false,
+      "joint_hard_limits_pass": false,
       "endpoint_error_m": 3.219063366914323e-05,
       "minimum_pelvis_height_m": 0.79,
-      "forbidden_contact_step_rate": 0.6276457180071638,
+      "forbidden_contact_step_rate": 0.0,
+      "free_space_contact_step_rate": 0.30250732660371216,
+      "manipulation_contact_step_rate": 0.0,
       "finite": true,
+      "worst_actual_joint_jerk_event": {
+        "time_s": 12.774000000000001,
+        "joint": "right_shoulder_roll_joint",
+        "jerk_rad_s3": 61633.46882797156,
+        "acceleration_rad_s2": -12.766174101641047,
+        "velocity_rad_s": 0.1614143398824008,
+        "free_space_contact_reasons": [],
+        "manipulation_contact_reasons": []
+      },
       "maxima": {
         "command_speed_m_s": 2.5618520110956045,
         "command_acceleration_m_s2": 1283.6021915289507,
         "command_jerk_m_s3": 1282262.8200828873,
         "command_angular_speed_rad_s": 14.104753905443122,
         "command_gripper_speed_rad_s": 9.511709213256836,
+        "joint_command_speed_rad_s": 0.7318399862963898,
+        "joint_command_acceleration_rad_s2": 33.07878237242615,
+        "joint_command_jerk_rad_s3": 16562.31119927243,
+        "joint_command_speed_limit_ratio": 1.0214782251693517,
+        "joint_command_acceleration_limit_ratio": 10.87191582580175,
+        "joint_command_jerk_limit_ratio": 123.30624296944406,
         "actual_joint_speed_rad_s": 0.7303999473815677,
         "actual_joint_acceleration_rad_s2": 110.50076355430208,
         "actual_joint_jerk_rad_s3": 61633.46882797156,
@@ -33,67 +104,41 @@
       }
     },
     {
-      "scale": 0.5,
-      "filter_enabled": true,
-      "nominal_path_duration_s": 45.13333511352539,
-      "simulated_duration_s": 47.134,
-      "hard_command_limits_pass": true,
-      "endpoint_error_m": 8.080145130508357e-05,
-      "minimum_pelvis_height_m": 0.79,
-      "forbidden_contact_step_rate": 0.568931132515806,
-      "finite": true,
-      "maxima": {
-        "command_speed_m_s": 0.08460258131543852,
-        "command_acceleration_m_s2": 0.7562824765891226,
-        "command_jerk_m_s3": 125.67000000177023,
-        "command_angular_speed_rad_s": 1.0439999999344742,
-        "command_gripper_speed_rad_s": 5.793000000000159,
-        "actual_joint_speed_rad_s": 0.4877579281083222,
-        "actual_joint_acceleration_rad_s2": 52.28986365044463,
-        "actual_joint_jerk_rad_s3": 26144.931825222313,
-        "desired_to_filtered_position_lag_m": 0.010711787893288846,
-        "actual_to_filtered_position_error_m": 0.02262404987183425
-      }
-    },
-    {
-      "scale": 0.75,
-      "filter_enabled": true,
-      "nominal_path_duration_s": 30.088890075683594,
-      "simulated_duration_s": 32.09,
-      "hard_command_limits_pass": true,
-      "endpoint_error_m": 0.00010305371386871366,
-      "minimum_pelvis_height_m": 0.79,
-      "forbidden_contact_step_rate": 0.5877843564973512,
-      "finite": true,
-      "maxima": {
-        "command_speed_m_s": 0.11958586080732592,
-        "command_acceleration_m_s2": 0.7550005261983591,
-        "command_jerk_m_s3": 125.67000000114264,
-        "command_angular_speed_rad_s": 1.0440000001471608,
-        "command_gripper_speed_rad_s": 5.793000000000159,
-        "actual_joint_speed_rad_s": 0.719438239249766,
-        "actual_joint_acceleration_rad_s2": 52.28986365044463,
-        "actual_joint_jerk_rad_s3": 26144.931825222313,
-        "desired_to_filtered_position_lag_m": 0.015251724479293956,
-        "actual_to_filtered_position_error_m": 0.0350146126012879
-      }
-    },
-    {
       "scale": 1.0,
       "filter_enabled": true,
+      "joint_filter_enabled": false,
       "nominal_path_duration_s": 22.566667556762695,
       "simulated_duration_s": 24.568,
       "hard_command_limits_pass": true,
+      "eef_hard_limits_pass": true,
+      "joint_hard_limits_pass": false,
       "endpoint_error_m": 0.00012369107600255328,
       "minimum_pelvis_height_m": 0.79,
-      "forbidden_contact_step_rate": 0.604200586128297,
+      "forbidden_contact_step_rate": 0.0,
+      "free_space_contact_step_rate": 0.3103223705633344,
+      "manipulation_contact_step_rate": 0.0,
       "finite": true,
+      "worst_actual_joint_jerk_event": {
+        "time_s": 12.952,
+        "joint": "right_shoulder_roll_joint",
+        "jerk_rad_s3": 45049.927994122765,
+        "acceleration_rad_s2": -6.497349649525121,
+        "velocity_rad_s": 0.11786899443136738,
+        "free_space_contact_reasons": [],
+        "manipulation_contact_reasons": []
+      },
       "maxima": {
         "command_speed_m_s": 0.15048532580511492,
         "command_acceleration_m_s2": 0.7676335270913142,
         "command_jerk_m_s3": 125.67000000198772,
         "command_angular_speed_rad_s": 1.0440000001471608,
         "command_gripper_speed_rad_s": 5.793000000000159,
+        "joint_command_speed_rad_s": 0.8527128529686179,
+        "joint_command_acceleration_rad_s2": 2.256997583369169,
+        "joint_command_jerk_rad_s3": 1070.9289093198404,
+        "joint_command_speed_limit_ratio": 0.9790226672949698,
+        "joint_command_acceleration_limit_ratio": 0.6575590013477135,
+        "joint_command_jerk_limit_ratio": 6.374315266609479,
         "actual_joint_speed_rad_s": 0.851397644346342,
         "actual_joint_acceleration_rad_s2": 83.60250633872042,
         "actual_joint_jerk_rad_s3": 45049.927994122765,
@@ -102,60 +147,256 @@
       }
     },
     {
+      "scale": 0.5,
+      "filter_enabled": true,
+      "joint_filter_enabled": true,
+      "nominal_path_duration_s": 45.13333511352539,
+      "simulated_duration_s": 47.134,
+      "hard_command_limits_pass": true,
+      "eef_hard_limits_pass": true,
+      "joint_hard_limits_pass": true,
+      "endpoint_error_m": 0.0002923899386753192,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.011881020070437476,
+      "free_space_contact_step_rate": 0.3145075741502949,
+      "manipulation_contact_step_rate": 0.011881020070437476,
+      "finite": true,
+      "worst_actual_joint_jerk_event": {
+        "time_s": 0.0,
+        "joint": "right_shoulder_roll_joint",
+        "jerk_rad_s3": 14985.2077456204,
+        "acceleration_rad_s2": -52.29057553930153,
+        "velocity_rad_s": -0.10458115107860307,
+        "free_space_contact_reasons": [],
+        "manipulation_contact_reasons": []
+      },
+      "maxima": {
+        "command_speed_m_s": 0.08471516614338784,
+        "command_acceleration_m_s2": 0.7562816932089805,
+        "command_jerk_m_s3": 125.67000000177023,
+        "command_angular_speed_rad_s": 1.0440000000408174,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "joint_command_speed_rad_s": 0.5317317766907748,
+        "joint_command_acceleration_rad_s2": 1.3391745975754876,
+        "joint_command_jerk_rad_s3": 10.315046556491625,
+        "joint_command_speed_limit_ratio": 0.7018810439244928,
+        "joint_command_acceleration_limit_ratio": 0.24991365289450532,
+        "joint_command_jerk_limit_ratio": 0.0767954195300809,
+        "actual_joint_speed_rad_s": 0.5301660675029183,
+        "actual_joint_acceleration_rad_s2": 52.29057553930153,
+        "actual_joint_jerk_rad_s3": 14985.2077456204,
+        "desired_to_filtered_position_lag_m": 0.010727175132862204,
+        "actual_to_filtered_position_error_m": 0.026307454880208785
+      }
+    },
+    {
+      "scale": 0.75,
+      "filter_enabled": true,
+      "joint_filter_enabled": true,
+      "nominal_path_duration_s": 30.088890075683594,
+      "simulated_duration_s": 32.09,
+      "hard_command_limits_pass": true,
+      "eef_hard_limits_pass": true,
+      "joint_hard_limits_pass": true,
+      "endpoint_error_m": 0.000377849158866197,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.02206294795886569,
+      "free_space_contact_step_rate": 0.32695543783110004,
+      "manipulation_contact_step_rate": 0.02206294795886569,
+      "finite": true,
+      "worst_actual_joint_jerk_event": {
+        "time_s": 17.082,
+        "joint": "right_shoulder_roll_joint",
+        "jerk_rad_s3": 15866.797887415963,
+        "acceleration_rad_s2": 30.552803968930988,
+        "velocity_rad_s": 0.0160705256751628,
+        "free_space_contact_reasons": [],
+        "manipulation_contact_reasons": []
+      },
+      "maxima": {
+        "command_speed_m_s": 0.12007456588174872,
+        "command_acceleration_m_s2": 0.7549997421332961,
+        "command_jerk_m_s3": 125.67000000114264,
+        "command_angular_speed_rad_s": 1.0440000001471608,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "joint_command_speed_rad_s": 0.789845431266506,
+        "joint_command_acceleration_rad_s2": 2.14107091255078,
+        "joint_command_jerk_rad_s3": 10.32611773171821,
+        "joint_command_speed_limit_ratio": 0.976427977447231,
+        "joint_command_acceleration_limit_ratio": 0.24920928756079952,
+        "joint_command_jerk_limit_ratio": 0.0766300009668883,
+        "actual_joint_speed_rad_s": 0.7874952085567686,
+        "actual_joint_acceleration_rad_s2": 52.29057553930153,
+        "actual_joint_jerk_rad_s3": 15866.797887415963,
+        "desired_to_filtered_position_lag_m": 0.015315005913398667,
+        "actual_to_filtered_position_error_m": 0.039442156656821076
+      }
+    },
+    {
+      "scale": 1.0,
+      "filter_enabled": true,
+      "joint_filter_enabled": true,
+      "nominal_path_duration_s": 22.566667556762695,
+      "simulated_duration_s": 24.568,
+      "hard_command_limits_pass": true,
+      "eef_hard_limits_pass": true,
+      "joint_hard_limits_pass": true,
+      "endpoint_error_m": 0.0008533589067105615,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.005942689677629437,
+      "free_space_contact_step_rate": 0.32188212308694236,
+      "manipulation_contact_step_rate": 0.005942689677629437,
+      "finite": true,
+      "worst_actual_joint_jerk_event": {
+        "time_s": 6.498,
+        "joint": "left_shoulder_roll_joint",
+        "jerk_rad_s3": 17890.319929786914,
+        "acceleration_rad_s2": 3.3382986356175204,
+        "velocity_rad_s": -0.08588010793654162,
+        "free_space_contact_reasons": [],
+        "manipulation_contact_reasons": []
+      },
+      "maxima": {
+        "command_speed_m_s": 0.14992163595672536,
+        "command_acceleration_m_s2": 0.7766860130060825,
+        "command_jerk_m_s3": 125.67000000198772,
+        "command_angular_speed_rad_s": 1.0440000000408174,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "joint_command_speed_rad_s": 0.9625304021275982,
+        "joint_command_acceleration_rad_s2": 3.038847966180258,
+        "joint_command_jerk_rad_s3": 38.03308112519665,
+        "joint_command_speed_limit_ratio": 0.9999997016361628,
+        "joint_command_acceleration_limit_ratio": 0.38240626489431123,
+        "joint_command_jerk_limit_ratio": 0.27889230549038624,
+        "actual_joint_speed_rad_s": 0.9594805699020438,
+        "actual_joint_acceleration_rad_s2": 52.29057553930153,
+        "actual_joint_jerk_rad_s3": 17890.319929786914,
+        "desired_to_filtered_position_lag_m": 0.019264983019920516,
+        "actual_to_filtered_position_error_m": 0.04952126232544511
+      }
+    },
+    {
       "scale": 1.25,
       "filter_enabled": true,
+      "joint_filter_enabled": true,
       "nominal_path_duration_s": 18.053334045410157,
       "simulated_duration_s": 20.054000000000002,
       "hard_command_limits_pass": true,
-      "endpoint_error_m": 0.00012149600696038697,
+      "eef_hard_limits_pass": true,
+      "joint_hard_limits_pass": true,
+      "endpoint_error_m": 0.00032957786569065014,
       "minimum_pelvis_height_m": 0.79,
-      "forbidden_contact_step_rate": 0.6202253914431036,
+      "forbidden_contact_step_rate": 0.03071706392739603,
+      "free_space_contact_step_rate": 0.3850603370898574,
+      "manipulation_contact_step_rate": 0.03071706392739603,
       "finite": true,
+      "worst_actual_joint_jerk_event": {
+        "time_s": 10.538,
+        "joint": "right_shoulder_roll_joint",
+        "jerk_rad_s3": 100145.47064764345,
+        "acceleration_rad_s2": -18.821204389017854,
+        "velocity_rad_s": 0.2859684017663014,
+        "free_space_contact_reasons": [],
+        "manipulation_contact_reasons": []
+      },
       "maxima": {
-        "command_speed_m_s": 0.17836792363595205,
-        "command_acceleration_m_s2": 1.0359473747980028,
-        "command_jerk_m_s3": 125.67000000089575,
-        "command_angular_speed_rad_s": 1.0440000000408174,
+        "command_speed_m_s": 0.18344888786183672,
+        "command_acceleration_m_s2": 1.1109317965608,
+        "command_jerk_m_s3": 125.67000000075892,
+        "command_angular_speed_rad_s": 1.0440000001471608,
         "command_gripper_speed_rad_s": 5.793000000000159,
-        "actual_joint_speed_rad_s": 0.9865407480888277,
-        "actual_joint_acceleration_rad_s2": 52.28986365044463,
-        "actual_joint_jerk_rad_s3": 26144.931825222313,
-        "desired_to_filtered_position_lag_m": 0.02314930095436533,
-        "actual_to_filtered_position_error_m": 0.049206658250599326
+        "joint_command_speed_rad_s": 1.1120281957046063,
+        "joint_command_acceleration_rad_s2": 4.061396003930684,
+        "joint_command_jerk_rad_s3": 68.22960646296616,
+        "joint_command_speed_limit_ratio": 0.9999999980049733,
+        "joint_command_acceleration_limit_ratio": 0.6061323261810483,
+        "joint_command_jerk_limit_ratio": 0.5003200289379658,
+        "actual_joint_speed_rad_s": 1.1080534076435327,
+        "actual_joint_acceleration_rad_s2": 181.46973690626905,
+        "actual_joint_jerk_rad_s3": 100145.47064764345,
+        "desired_to_filtered_position_lag_m": 0.023818692644596753,
+        "actual_to_filtered_position_error_m": 0.05723269029563026
       }
     },
     {
       "scale": 1.5,
       "filter_enabled": true,
+      "joint_filter_enabled": true,
       "nominal_path_duration_s": 15.044445037841797,
       "simulated_duration_s": 17.046,
       "hard_command_limits_pass": true,
-      "endpoint_error_m": 0.00014866278931934495,
+      "eef_hard_limits_pass": true,
+      "joint_hard_limits_pass": true,
+      "endpoint_error_m": 0.0009025104721397769,
       "minimum_pelvis_height_m": 0.79,
-      "forbidden_contact_step_rate": 0.6321717705033439,
+      "forbidden_contact_step_rate": 0.0434119441511205,
+      "free_space_contact_step_rate": 0.39328874809339437,
+      "manipulation_contact_step_rate": 0.0434119441511205,
       "finite": true,
+      "worst_actual_joint_jerk_event": {
+        "time_s": 9.026,
+        "joint": "right_shoulder_roll_joint",
+        "jerk_rad_s3": 29549.590535458385,
+        "acceleration_rad_s2": -7.498577114324827,
+        "velocity_rad_s": 0.03904833690061325,
+        "free_space_contact_reasons": [],
+        "manipulation_contact_reasons": []
+      },
       "maxima": {
-        "command_speed_m_s": 0.19933529576234152,
-        "command_acceleration_m_s2": 1.258248101057629,
-        "command_jerk_m_s3": 125.67000000022199,
+        "command_speed_m_s": 0.19911521693050055,
+        "command_acceleration_m_s2": 1.2038924002022768,
+        "command_jerk_m_s3": 125.67000000157586,
         "command_angular_speed_rad_s": 1.0440000000408174,
         "command_gripper_speed_rad_s": 5.793000000000159,
-        "actual_joint_speed_rad_s": 1.0484784687441204,
-        "actual_joint_acceleration_rad_s2": 52.28986365044463,
-        "actual_joint_jerk_rad_s3": 26144.931825222313,
-        "desired_to_filtered_position_lag_m": 0.026190072526369172,
-        "actual_to_filtered_position_error_m": 0.052767028094479945
+        "joint_command_speed_rad_s": 1.142458421170528,
+        "joint_command_acceleration_rad_s2": 4.3439865351282965,
+        "joint_command_jerk_rad_s3": 94.20115826883068,
+        "joint_command_speed_limit_ratio": 0.999999999979965,
+        "joint_command_acceleration_limit_ratio": 0.7800537587698807,
+        "joint_command_jerk_limit_ratio": 0.6907664967499556,
+        "actual_joint_speed_rad_s": 1.1382809874797755,
+        "actual_joint_acceleration_rad_s2": 52.29057553930153,
+        "actual_joint_jerk_rad_s3": 29549.590535458385,
+        "desired_to_filtered_position_lag_m": 0.02614094363724611,
+        "actual_to_filtered_position_error_m": 0.06102042483727257
       }
     }
   ],
   "preflight_gate": {
     "in_distribution": {
       "checked_targets": 68,
+      "selected_phase": "grasp_policy_view_without_ground_truth_phase_labels",
       "reason_counts": {
-        "collision": 37,
-        "accepted": 31
+        "accepted": 59,
+        "collision": 9
       },
-      "accepted_rate": 0.45588235294117646
+      "collision_category_counts": {
+        "torso_contact": 9
+      },
+      "accepted_rate": 0.8676470588235294,
+      "by_phase": {
+        "free_space": {
+          "reason_counts": {
+            "accepted": 44,
+            "collision": 24
+          },
+          "collision_category_counts": {
+            "dex_cube_outside_manipulation_phase": 15,
+            "torso_contact": 9
+          },
+          "accepted_rate": 0.6470588235294118
+        },
+        "grasp": {
+          "reason_counts": {
+            "accepted": 59,
+            "collision": 9
+          },
+          "collision_category_counts": {
+            "torso_contact": 9
+          },
+          "accepted_rate": 0.8676470588235294
+        }
+      }
     },
     "out_of_distribution": {
       "checked_targets": 100,
@@ -164,6 +405,6 @@
       },
       "rejected_rate": 1.0
     },
-    "rule": "Reject unreachable, joint-saturated, table/floor/torso/cross-arm contacts; allow Dex1-to-cube contact."
+    "rule": "Free-space rejects Dex1-cube contact; grasp/place allows it. All phases reject table/floor, torso-elbow, cross-arm and non-adjacent self contact. The public-model torso/shoulder-yaw overlap is explicitly allowlisted."
   }
 }
