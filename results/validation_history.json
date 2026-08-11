@@ -128,5 +128,10 @@
     "time": "2026-08-11 12:30 EDT",
     "title": "Validation run",
     "detail": "完成 Gate-A.2 recorded-policy proxy 验证：14-D 逐关节 P99 command filter 五档通过，phase-aware preflight free-space 44/68、grasp-policy 59/68，OOD 100% 拒绝；actual joint jerk 仍在 1.25× 出现 100k rad/s³ 尖峰，未宣称真实 VLA 或真机安全。"
+  },
+  {
+    "time": "2026-08-11 12:32 EDT",
+    "title": "Validation run",
+    "detail": "Gate-A.2 提交的 GitHub Actions Run 31512781222 已通过：Ubuntu headless 17/17 测试、动力学、三路渲染、HTML 检查与 artifact 全部成功。"
   }
 ]
