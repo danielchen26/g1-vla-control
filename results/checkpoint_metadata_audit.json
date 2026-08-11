@@ -1,0 +1,387 @@
+{
+  "repository": "LGG100/stack-cube-eef-24k",
+  "public_tree": {
+    "files": [
+      ".gitattributes",
+      "_CHECKPOINT_METADATA",
+      "assets/stack-cube-eef/norm_stats.json",
+      "params/_METADATA",
+      "params/_sharding",
+      "params/array_metadatas/process_0",
+      "params/d/3c60a5806a4c68f990c7a2ddbfe2c7d7",
+      "params/manifest.ocdbt",
+      "params/ocdbt.process_0/d/0e5b5f6e1c0ec5d58d4add89e9993de1",
+      "params/ocdbt.process_0/d/216c4172b6f8f2c3beb3442ee563851b",
+      "params/ocdbt.process_0/d/57766178dff7ae31654699368f97993d",
+      "params/ocdbt.process_0/d/64e3c033c4a72a68769e4a5b27c412fe",
+      "params/ocdbt.process_0/d/a887d9a926f3193536c316d9a09efc1d",
+      "params/ocdbt.process_0/d/a9b67a295d2594515fe9465f6900ac8a",
+      "params/ocdbt.process_0/d/cd0526c79cc68acb68b7250ca8140470",
+      "params/ocdbt.process_0/d/d85dd617847995cd4ef3c443bf996a73",
+      "params/ocdbt.process_0/manifest.ocdbt"
+    ],
+    "listed_bytes": 7168237327,
+    "has_params": true,
+    "has_norm_stats": true,
+    "has_training_config": false,
+    "has_model_card": false,
+    "has_train_state_payload": false
+  },
+  "orbax": {
+    "item_handlers": {
+      "assets": "openpi.training.checkpoints.CallbackHandler",
+      "params": "orbax.checkpoint._src.handlers.pytree_checkpoint_handler.PyTreeCheckpointHandler",
+      "train_state": "orbax.checkpoint._src.handlers.pytree_checkpoint_handler.PyTreeCheckpointHandler"
+    },
+    "parameter_leaf_count": 61,
+    "selected_parameter_shapes": {
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoder_norm', 'bias', 'value')": [
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoder_norm', 'scale', 'value')": [
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'LayerNorm_0', 'bias', 'value')": [
+        27,
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'LayerNorm_0', 'scale', 'value')": [
+        27,
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'LayerNorm_1', 'bias', 'value')": [
+        27,
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'LayerNorm_1', 'scale', 'value')": [
+        27,
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MlpBlock_0', 'Dense_0', 'bias', 'value')": [
+        27,
+        1076
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MlpBlock_0', 'Dense_0', 'kernel', 'value')": [
+        27,
+        288,
+        4304
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MlpBlock_0', 'Dense_1', 'bias', 'value')": [
+        27,
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MlpBlock_0', 'Dense_1', 'kernel', 'value')": [
+        27,
+        1076,
+        1152
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'key', 'bias', 'value')": [
+        27,
+        4,
+        72
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'key', 'kernel', 'value')": [
+        27,
+        288,
+        16,
+        72
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'out', 'bias', 'value')": [
+        27,
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'out', 'kernel', 'value')": [
+        27,
+        4,
+        72,
+        1152
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'query', 'bias', 'value')": [
+        27,
+        4,
+        72
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'query', 'kernel', 'value')": [
+        27,
+        288,
+        16,
+        72
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'value', 'bias', 'value')": [
+        27,
+        4,
+        72
+      ],
+      "('params', 'PaliGemma', 'img', 'Transformer', 'encoderblock', 'MultiHeadDotProductAttention_0', 'value', 'kernel', 'value')": [
+        27,
+        288,
+        16,
+        72
+      ],
+      "('params', 'PaliGemma', 'img', 'embedding', 'bias', 'value')": [
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'embedding', 'kernel', 'value')": [
+        14,
+        14,
+        3,
+        288
+      ],
+      "('params', 'PaliGemma', 'img', 'head', 'bias', 'value')": [
+        512
+      ],
+      "('params', 'PaliGemma', 'img', 'head', 'kernel', 'value')": [
+        288,
+        2048
+      ],
+      "('params', 'PaliGemma', 'img', 'pos_embedding', 'value')": [
+        1,
+        64,
+        1152
+      ],
+      "('params', 'PaliGemma', 'llm', 'embedder', 'input_embedding', 'value')": [
+        64288,
+        2048
+      ],
+      "('params', 'PaliGemma', 'llm', 'final_norm', 'scale', 'value')": [
+        512
+      ],
+      "('params', 'PaliGemma', 'llm', 'final_norm_1', 'Dense_0', 'bias', 'value')": [
+        768
+      ],
+      "('params', 'PaliGemma', 'llm', 'final_norm_1', 'Dense_0', 'kernel', 'value')": [
+        256,
+        3072
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'attn_vec_einsum', 'lora_a', 'value')": [
+        18,
+        2,
+        256,
+        16
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'attn_vec_einsum', 'lora_b', 'value')": [
+        18,
+        2,
+        16,
+        2048
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'attn_vec_einsum', 'w', 'value')": [
+        18,
+        2,
+        256,
+        2048
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'attn_vec_einsum_1', 'w', 'value')": [
+        18,
+        2,
+        256,
+        1024
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'kv_einsum', 'lora_a', 'value')": [
+        18,
+        2,
+        1,
+        512,
+        16
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'kv_einsum', 'lora_b', 'value')": [
+        18,
+        2,
+        1,
+        4,
+        256
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'kv_einsum', 'w', 'value')": [
+        18,
+        2,
+        1,
+        512,
+        256
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'kv_einsum_1', 'w', 'value')": [
+        18,
+        2,
+        1,
+        256,
+        256
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'q_einsum', 'lora_a', 'value')": [
+        18,
+        2,
+        2048,
+        16
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'q_einsum', 'lora_b', 'value')": [
+        18,
+        2,
+        16,
+        256
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'q_einsum', 'w', 'value')": [
+        18,
+        2,
+        2048,
+        256
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'attn', 'q_einsum_1', 'w', 'value')": [
+        18,
+        2,
+        1024,
+        256
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp', 'gating_einsum', 'value')": [
+        18,
+        2,
+        512,
+        16384
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp', 'gating_einsum_lora_a', 'value')": [
+        18,
+        2,
+        512,
+        16
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp', 'gating_einsum_lora_b', 'value')": [
+        18,
+        2,
+        4,
+        16384
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp', 'linear', 'value')": [
+        18,
+        4096,
+        2048
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp', 'linear_lora_a', 'value')": [
+        18,
+        4096,
+        16
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp', 'linear_lora_b', 'value')": [
+        18,
+        4,
+        2048
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp_1', 'gating_einsum', 'value')": [
+        18,
+        2,
+        256,
+        4096
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'mlp_1', 'linear', 'value')": [
+        18,
+        1024,
+        1024
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'pre_attention_norm', 'scale', 'value')": [
+        18,
+        512
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'pre_attention_norm_1', 'Dense_0', 'bias', 'value')": [
+        18,
+        768
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'pre_attention_norm_1', 'Dense_0', 'kernel', 'value')": [
+        18,
+        256,
+        3072
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'pre_ffw_norm', 'scale', 'value')": [
+        18,
+        512
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'pre_ffw_norm_1', 'Dense_0', 'bias', 'value')": [
+        18,
+        768
+      ],
+      "('params', 'PaliGemma', 'llm', 'layers', 'pre_ffw_norm_1', 'Dense_0', 'kernel', 'value')": [
+        18,
+        256,
+        3072
+      ],
+      "('params', 'action_in_proj', 'bias', 'value')": [
+        256
+      ],
+      "('params', 'action_in_proj', 'kernel', 'value')": [
+        8,
+        1024
+      ],
+      "('params', 'action_out_proj', 'bias', 'value')": [
+        8
+      ],
+      "('params', 'action_out_proj', 'kernel', 'value')": [
+        256,
+        32
+      ],
+      "('params', 'time_mlp_in', 'bias', 'value')": [
+        256
+      ],
+      "('params', 'time_mlp_in', 'kernel', 'value')": [
+        256,
+        1024
+      ],
+      "('params', 'time_mlp_out', 'bias', 'value')": [
+        256
+      ],
+      "('params', 'time_mlp_out', 'kernel', 'value')": [
+        256,
+        1024
+      ]
+    }
+  },
+  "architecture_evidence": {
+    "paligemma_present": true,
+    "flow_action_projection_present": true,
+    "time_mlp_present": true,
+    "pi0_state_proj_present": false,
+    "pi0_action_time_mlp_present": false,
+    "adaptive_rmsnorm_signature_present": true,
+    "lora_parameters_present": true,
+    "action_output_kernel_write_shape": [
+      256,
+      32
+    ],
+    "likely_internal_padded_action_dim": 32,
+    "published_state_dim": 16,
+    "published_action_dim": 16,
+    "family_inference": "OpenPI Pi0Config with pi05=True and LoRA is strongly indicated",
+    "pi05_signature_strongly_supported": true,
+    "candidate_model_config": {
+      "class": "Pi0Config",
+      "pi05": true,
+      "action_dim": 32,
+      "paligemma_lora": true,
+      "action_horizon_candidate": 50,
+      "action_horizon_status": "OpenPI default; not encoded in parameter shapes",
+      "max_token_len_candidate": 200,
+      "image_resolution_candidate": [
+        224,
+        224
+      ],
+      "normalization_candidate": "q01/q99 quantile normalization",
+      "candidate_defaults_confirmed": false
+    },
+    "standard_model_input_keys_candidate": [
+      "base_0_rgb",
+      "left_wrist_0_rgb",
+      "right_wrist_0_rgb",
+      "state",
+      "prompt"
+    ],
+    "exact_variant_confirmed": false
+  },
+  "restore_readiness": {
+    "checkpoint_payload_available": true,
+    "normalization_payload_available": true,
+    "exact_parameter_tree_config_available": false,
+    "custom_data_transform_available": false,
+    "safe_to_claim_policy_restore": false,
+    "still_required": [
+      "OpenPI Git commit",
+      "complete TrainConfig/ModelConfig",
+      "DataConfig and repack/FK transform",
+      "inference observation keys"
+    ]
+  },
+  "verdict": "The parameter signature strongly indicates Pi0Config(pi05=True) with LoRA, 32-wide internal action padding, and 16 published robot dimensions. Action horizon, exact code revision, and DataConfig remain unencoded, so the policy still cannot be safely restored."
+}

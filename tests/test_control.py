@@ -9,12 +9,29 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from action_schema import (
     EEFActionChunk, LEFT_QUAT, RIGHT_QUAT, slerp,
     mujoco_wxyz_to_vla_xyzw, vla_xyzw_to_mujoco_wxyz,
+    pelvis_vla_action_to_world_mujoco,
 )
 from adaptive_retimer import AdaptiveChunkExecutor, AdaptiveRetimer
 from vla_stub import make_reach_chunk
 
 
 class ActionSchemaTests(unittest.TestCase):
+    def test_pelvis_frame_action_to_world_boundary(self):
+        action = np.zeros(16)
+        action[0:3] = [0.2, 0.1, 0.3]
+        action[3:7] = [0.0, 0.0, 0.0, 1.0]
+        action[7:10] = [0.2, -0.1, 0.3]
+        action[10:14] = [0.0, 0.0, 0.0, 1.0]
+        world = pelvis_vla_action_to_world_mujoco(
+            action,
+            np.array([1.0, 2.0, 3.0]),
+            np.array([1.0, 0.0, 0.0, 0.0]),
+        )
+        np.testing.assert_allclose(world[0:3], [1.2, 2.1, 3.3])
+        np.testing.assert_allclose(world[7:10], [1.2, 1.9, 3.3])
+        np.testing.assert_allclose(world[3:7], [1.0, 0.0, 0.0, 0.0])
+        np.testing.assert_allclose(world[10:14], [1.0, 0.0, 0.0, 0.0])
+
     def test_slerp_is_normalized_and_shortest_path(self):
         q = slerp(np.array([0.0, 0, 0, 1.0]), np.array([0, -0.707, 0, -0.707]), 0.5)
         self.assertAlmostEqual(np.linalg.norm(q), 1.0, places=8)

@@ -58,5 +58,30 @@
     "time": "2026-08-10 17:57 EDT",
     "title": "Validation run",
     "detail": "已从公开 GitHub URL 使用 --recurse-submodules 全新 clone，并在干净副本中验证 9/9 自动测试通过；两个官方 submodule revision 均可复现。"
+  },
+  {
+    "time": "2026-08-10 22:13 EDT",
+    "title": "Validation run",
+    "detail": "11/11 项自动测试、baseline/adaptive 动力学和三路相机渲染全部通过。"
+  },
+  {
+    "time": "2026-08-10 22:14 EDT",
+    "title": "Validation run",
+    "detail": "完成 comprehensive deep validation：100 episodes/95,966 帧数据审计、250 个真实数据 IK 目标、Dex1 指尖/抓持、30 秒动力学、20 组随机化、5 档外部扰动、三路视觉域对照及 Orbax metadata 审计。"
+  },
+  {
+    "time": "2026-08-10 22:26 EDT",
+    "title": "Validation run",
+    "detail": "完成 comprehensive deep validation：100 episodes/95,966 帧数据审计、episode-0 全轨迹回放、250 个真实数据 IK 目标、1000 组宽域工作空间压力测试、Dex1 指尖/抓持、30 秒动力学、20 组随机化、5 档外部扰动、三路视觉域对照及 Orbax metadata 审计。"
+  },
+  {
+    "time": "2026-08-10 22:27 EDT",
+    "title": "Validation run",
+    "detail": "13/13 项自动测试、baseline/adaptive 动力学和三路相机渲染全部通过。"
+  },
+  {
+    "time": "2026-08-10 22:27 EDT",
+    "title": "Validation run",
+    "detail": "深度验证补充：1000 组宽域 OOD 双手目标仅 1.4% 同时成功，35.8% 关节饱和、83.0% 出现禁区接触；关节范围始终合规，但明确证明接入真实 VLA 前必须增加可达性/碰撞拒绝器。"
   }
 ]

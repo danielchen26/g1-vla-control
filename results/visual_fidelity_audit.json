@@ -1,0 +1,401 @@
+{
+  "cameras": {
+    "cam_left_high": {
+      "reference": {
+        "resolution": [
+          640,
+          480
+        ],
+        "mean_rgb": [
+          118.311171875,
+          118.96241536458334,
+          118.47294596354166
+        ],
+        "luminance_mean": 118.58218383789062,
+        "luminance_std": 39.80249786376953,
+        "edge_density": 0.011428349099857009,
+        "objects": {
+          "red": {
+            "pixel_count": 8920,
+            "area_fraction": 0.029036458333333334,
+            "center_normalized": [
+              0.7011622407511211,
+              0.41047669095665174
+            ],
+            "bbox_normalized": [
+              0.015625,
+              0.020833333333333332,
+              0.89375,
+              0.6833333333333333
+            ]
+          },
+          "blue": {
+            "pixel_count": 7162,
+            "area_fraction": 0.023313802083333335,
+            "center_normalized": [
+              0.40154875558503217,
+              0.6211573815507773
+            ],
+            "bbox_normalized": [
+              0.190625,
+              0.3541666666666667,
+              1.0,
+              1.0
+            ]
+          },
+          "yellow": {
+            "pixel_count": 8318,
+            "area_fraction": 0.027076822916666667,
+            "center_normalized": [
+              0.5779805467059389,
+              0.24656392762683335
+            ],
+            "bbox_normalized": [
+              0.0125,
+              0.0,
+              0.896875,
+              0.525
+            ]
+          }
+        }
+      },
+      "simulation": {
+        "resolution": [
+          640,
+          480
+        ],
+        "mean_rgb": [
+          183.94879231770832,
+          187.01707356770834,
+          191.631484375
+        ],
+        "luminance_mean": 187.53245544433594,
+        "luminance_std": 90.01487731933594,
+        "edge_density": 0.021651605464185406,
+        "objects": {
+          "red": {
+            "pixel_count": 4763,
+            "area_fraction": 0.015504557291666667,
+            "center_normalized": [
+              0.5436194362796557,
+              0.5224320281335293
+            ],
+            "bbox_normalized": [
+              0.4546875,
+              0.43125,
+              0.75,
+              0.6166666666666667
+            ]
+          },
+          "blue": {
+            "pixel_count": 51413,
+            "area_fraction": 0.16736002604166667,
+            "center_normalized": [
+              0.4853690943924688,
+              0.31954799045636967
+            ],
+            "bbox_normalized": [
+              0.0,
+              0.0,
+              1.0,
+              1.0
+            ]
+          },
+          "yellow": {
+            "pixel_count": 3233,
+            "area_fraction": 0.010524088541666667,
+            "center_normalized": [
+              0.7042766973399319,
+              0.5353747809052479
+            ],
+            "bbox_normalized": [
+              0.646875,
+              0.4625,
+              0.75,
+              0.6166666666666667
+            ]
+          }
+        }
+      },
+      "object_comparison": {
+        "red": {
+          "common_visibility": true,
+          "center_error_normalized": 0.19327113794646814,
+          "simulation_to_reference_area_ratio": 0.5339686098654708
+        },
+        "blue": {
+          "common_visibility": true,
+          "center_error_normalized": 0.31304005174119937,
+          "simulation_to_reference_area_ratio": 7.1785814018430605
+        },
+        "yellow": {
+          "common_visibility": true,
+          "center_error_normalized": 0.31521806204018543,
+          "simulation_to_reference_area_ratio": 0.38867516229862953
+        }
+      },
+      "luminance_difference": 68.95027160644531
+    },
+    "cam_left_wrist": {
+      "reference": {
+        "resolution": [
+          640,
+          480
+        ],
+        "mean_rgb": [
+          141.27285481770832,
+          143.633798828125,
+          144.64858723958332
+        ],
+        "luminance_mean": 143.18507385253906,
+        "luminance_std": 69.6982192993164,
+        "edge_density": 0.014503331702501406,
+        "objects": {
+          "red": {
+            "pixel_count": 11677,
+            "area_fraction": 0.03801106770833333,
+            "center_normalized": [
+              0.7901822225314722,
+              0.4805101196083469
+            ],
+            "bbox_normalized": [
+              0.684375,
+              0.375,
+              0.9015625,
+              0.60625
+            ]
+          },
+          "blue": {
+            "pixel_count": 16290,
+            "area_fraction": 0.05302734375,
+            "center_normalized": [
+              0.25652729818907305,
+              0.6249574125230203
+            ],
+            "bbox_normalized": [
+              0.04375,
+              0.0,
+              0.9625,
+              0.89375
+            ]
+          },
+          "yellow": null
+        }
+      },
+      "simulation": {
+        "resolution": [
+          640,
+          480
+        ],
+        "mean_rgb": [
+          94.64052083333333,
+          90.93563151041667,
+          102.88109049479166
+        ],
+        "luminance_mean": 96.15241241455078,
+        "luminance_std": 96.78633880615234,
+        "edge_density": 0.009951653252461494,
+        "objects": {
+          "red": {
+            "pixel_count": 22423,
+            "area_fraction": 0.07299153645833334,
+            "center_normalized": [
+              0.8880984368728537,
+              0.6187617067296972
+            ],
+            "bbox_normalized": [
+              0.609375,
+              0.31666666666666665,
+              1.0,
+              0.83125
+            ]
+          },
+          "blue": {
+            "pixel_count": 68312,
+            "area_fraction": 0.22236979166666668,
+            "center_normalized": [
+              0.47348955893547257,
+              0.17311922990592182
+            ],
+            "bbox_normalized": [
+              0.0,
+              0.0,
+              0.9453125,
+              1.0
+            ]
+          },
+          "yellow": null
+        }
+      },
+      "object_comparison": {
+        "red": {
+          "common_visibility": true,
+          "center_error_normalized": 0.16941394975774482,
+          "simulation_to_reference_area_ratio": 1.9202706174531132
+        },
+        "blue": {
+          "common_visibility": true,
+          "center_error_normalized": 0.5012288557724017,
+          "simulation_to_reference_area_ratio": 4.1934929404542665
+        },
+        "yellow": {
+          "common_visibility": false,
+          "reference_visible": false,
+          "simulation_visible": false
+        }
+      },
+      "luminance_difference": -47.03266143798828
+    },
+    "cam_right_wrist": {
+      "reference": {
+        "resolution": [
+          640,
+          480
+        ],
+        "mean_rgb": [
+          147.088603515625,
+          145.064658203125,
+          143.201650390625
+        ],
+        "luminance_mean": 145.11830139160156,
+        "luminance_std": 69.38384246826172,
+        "edge_density": 0.017681015537281526,
+        "objects": {
+          "red": {
+            "pixel_count": 15775,
+            "area_fraction": 0.051350911458333336,
+            "center_normalized": [
+              0.5131296553090332,
+              0.6341735340729001
+            ],
+            "bbox_normalized": [
+              0.29375,
+              0.48333333333333334,
+              0.9015625,
+              0.8166666666666667
+            ]
+          },
+          "blue": {
+            "pixel_count": 3206,
+            "area_fraction": 0.010436197916666667,
+            "center_normalized": [
+              0.026416289769182782,
+              0.6354758005822416
+            ],
+            "bbox_normalized": [
+              0.0,
+              0.23125,
+              0.4796875,
+              1.0
+            ]
+          },
+          "yellow": {
+            "pixel_count": 6487,
+            "area_fraction": 0.021116536458333335,
+            "center_normalized": [
+              0.7793584765685216,
+              0.6815849648013976
+            ],
+            "bbox_normalized": [
+              0.3203125,
+              0.5208333333333334,
+              0.9140625,
+              0.8208333333333333
+            ]
+          }
+        }
+      },
+      "simulation": {
+        "resolution": [
+          640,
+          480
+        ],
+        "mean_rgb": [
+          114.66303059895833,
+          97.97612955729167,
+          97.965263671875
+        ],
+        "luminance_mean": 103.5348129272461,
+        "luminance_std": 87.81228637695312,
+        "edge_density": 0.012968543423418421,
+        "objects": {
+          "red": {
+            "pixel_count": 53752,
+            "area_fraction": 0.17497395833333335,
+            "center_normalized": [
+              0.4079920572722876,
+              0.6373753534752196
+            ],
+            "bbox_normalized": [
+              0.0,
+              0.41041666666666665,
+              1.0,
+              1.0
+            ]
+          },
+          "blue": {
+            "pixel_count": 75915,
+            "area_fraction": 0.247119140625,
+            "center_normalized": [
+              0.5024456217480077,
+              0.1816005291005291
+            ],
+            "bbox_normalized": [
+              0.021875,
+              0.0,
+              0.953125,
+              0.65625
+            ]
+          },
+          "yellow": {
+            "pixel_count": 16366,
+            "area_fraction": 0.053274739583333335,
+            "center_normalized": [
+              0.9159147584932177,
+              0.6599797853273046
+            ],
+            "bbox_normalized": [
+              0.7015625,
+              0.45208333333333334,
+              1.0,
+              1.0
+            ]
+          }
+        }
+      },
+      "object_comparison": {
+        "red": {
+          "common_visibility": true,
+          "center_error_normalized": 0.10518634021783134,
+          "simulation_to_reference_area_ratio": 3.407416798732171
+        },
+        "blue": {
+          "common_visibility": true,
+          "center_error_normalized": 0.6577284294956426,
+          "simulation_to_reference_area_ratio": 23.67903930131004
+        },
+        "yellow": {
+          "common_visibility": true,
+          "center_error_normalized": 0.13825484408585775,
+          "simulation_to_reference_area_ratio": 2.522891937721597
+        }
+      },
+      "luminance_difference": -41.58348846435547
+    }
+  },
+  "scope": "Coarse frame-0 geometry/domain audit; not exact calibration.",
+  "summary": {
+    "common_object_observations": 8,
+    "center_error_normalized": {
+      "mean": 0.29916770888216637,
+      "max": 0.6577284294956426
+    },
+    "area_ratio": {
+      "median": 2.9651543682268837,
+      "min": 0.38867516229862953,
+      "max": 23.67903930131004
+    },
+    "exact_visual_calibration_confirmed": false,
+    "verdict": "Camera names/resolution and colored-object visibility are validated; pixel geometry, gripper appearance, lighting, and background remain outside the training domain."
+  }
+}

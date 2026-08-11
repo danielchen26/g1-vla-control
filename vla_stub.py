@@ -39,7 +39,7 @@ def make_reach_chunk(
     )
     actions[:, LEFT_QUAT] = left_start_quaternion
     actions[:, RIGHT_QUAT] = right_start_quaternion
-    # Unitree Dex1 motor convention: approximately 0 rad closed, 5.5 rad open.
+    # Synchronized dataset evidence: ~5.4 rad corresponds to visibly open.
     actions[:, 14] = 5.5
     actions[:, 15] = 5.5
     return EEFActionChunk(timestamps, actions)

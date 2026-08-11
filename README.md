@@ -31,7 +31,7 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - Unitree G1 29-DoF 官方 MuJoCo Menagerie 模型
 - Unitree 官方 Dex1-1 URDF/STL（BSD-3-Clause）替换原 rubber/articulated hand
 - 左右 Dex1 各两个对称 prismatic finger actuator
-- VLA 夹爪电机值 `0..5.5 rad` 到 URDF 指爪行程 `-0.020..0.0245 m` 的映射
+- VLA 夹爪电机值到 URDF 指爪的反向映射：`0 rad` 闭合、`5.5 rad` 张开（由同步 episode-0 首帧验证方向）
 - 白色桌面、红/蓝/黄动态方块、摩擦与碰撞
 - `cam_left_high`、`cam_left_wrist`、`cam_right_wrist` 三路 640×480 RGB
 - 16-D 双手 EEF action schema
@@ -48,6 +48,29 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - 真实 action chunk 的离线可视化与闭环执行
 - 批量抓取/堆叠成功率和随机化鲁棒性
 - 真机 G1 EDU 测试
+
+## 深度验证结果
+
+- 审计全部 100 episodes / 95,966 帧：raw parquet 是 14-D 关节绝对目标 + 2-D Dex1 电机值
+- `action[t]` 与 `state[t+3]` 最吻合，对应约 0.10 秒响应延迟
+- 候选训练 transform：pelvis frame、wrist +X 50 mm、quaternion `xyzw`；与 norm stats 高度吻合但非精确相等
+- Episode 0 全 678 帧、22.57 秒连续动力学回放；站立保持稳定，EEF P95 误差约 20 mm
+- 250 个随机真实数据 EEF 目标：IK 在 2 mm / 1° 门槛下 250/250 收敛，未发现近奇异样本
+- 1000 组宽于训练域的双手位置压力测试：关节范围始终合规，但大量目标饱和/碰撞，确认需要显式可达性拒绝器
+- Dex1 指尖间距约 21–100 mm；左右几何最大差约 0.039 mm
+- 左右预定位合成抓持零扰动 2/2；左手在 2 N 失效、右手在 4 N 失效，明确记录不对称边界
+- 30 秒稳定性通过；20 组质量/摩擦/位置随机化通过
+- 躯干冲击连续通过至 20 N；40 N 倒地，60 N 漂移/倾斜超门槛
+- 视觉域量化显示仍有明显中心、尺度、背景、照明和夹爪外观差异
+- Orbax 参数签名强烈指向 `Pi0Config(pi05=True)` + LoRA，内部 action padding 32、发布动作维度 16；仍不能无 config 安全恢复
+
+一键重跑所有本地可行验证：
+
+```bash
+python run_deep_validation.py
+```
+
+结果写入 `results/*_audit.json`、`results/comprehensive_sim_validation.json` 和 HTML 的“深度验证”Tab。
 
 ## 一键验证并更新 HTML
 

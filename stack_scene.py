@@ -7,7 +7,10 @@ import os
 import mujoco
 import numpy as np
 
-from dex1_gripper import Dex1Controller, replace_hands_with_dex1
+from dex1_gripper import (
+    Dex1Controller, JAW_MIN_M, motor_radians_to_jaw_position,
+    replace_hands_with_dex1,
+)
 
 ROOT = Path(__file__).resolve().parent
 _BUNDLED_MENAGERIE = ROOT / "third_party" / "mujoco_menagerie"
@@ -22,6 +25,13 @@ TASK_PROMPT = (
     "Stack the blocks by color: put the red block in the center, then stack "
     "the blue block on the red block, then stack the yellow block on the blue block."
 )
+REFERENCE_EP0_STATE = np.array([
+    -0.11507253, -0.02362091, -0.05944176, 0.22499184,
+    0.01432115, -0.24764203, -0.05209543,
+    -0.02505901, 0.06801048, 0.18285531, 0.07339139,
+    -0.06506236, -0.25428128, -0.09432784,
+    5.36817312, 5.38309956,
+])
 
 
 def _joint_width(joint_type: int) -> int:
@@ -77,13 +87,13 @@ def _rebuild_stand_key(spec: mujoco.MjSpec, captured: dict) -> None:
             joint_id = mujoco.mj_name2id(
                 model, mujoco.mjtObj.mjOBJ_JOINT, joint_name
             )
-            qpos[model.jnt_qposadr[joint_id]] = 0.0245
+            qpos[model.jnt_qposadr[joint_id]] = JAW_MIN_M
             actuator_id = mujoco.mj_name2id(
                 model,
                 mujoco.mjtObj.mjOBJ_ACTUATOR,
                 f"{joint_name}_actuator",
             )
-            ctrl[actuator_id] = 0.0245
+            ctrl[actuator_id] = JAW_MIN_M
     spec.add_key(name="stand", qpos=qpos, ctrl=ctrl)
 
 
@@ -142,20 +152,29 @@ def build_model() -> mujoco.MjModel:
     spec = mujoco.MjSpec.from_file(str(MODEL_PATH))
     captured_stand = _capture_and_remove_stand_key(spec)
     replace_hands_with_dex1(spec)
+    # Public checkpoint statistics are best explained by a grasp point 50 mm
+    # along wrist +X while retaining the wrist-yaw orientation.
+    for side in ("left", "right"):
+        spec.body(f"{side}_wrist_yaw_link").add_site(
+            name=f"{side}_eef",
+            pos=[0.05, 0.0, 0.0],
+            size=[0.006],
+            rgba=[0.1, 0.9, 0.9, 0.35],
+        )
 
     # White tabletop similar to the reference Stack-the-cubes episode.
     spec.worldbody.add_geom(
         name="work_table",
         type=mujoco.mjtGeom.mjGEOM_BOX,
-        pos=[0.68, 0.0, 0.53],
+        pos=[0.68, 0.0, 0.735],
         size=[0.45, 0.58, 0.055],
         friction=[1.0, 0.02, 0.002],
         rgba=[0.92, 0.93, 0.95, 1.0],
     )
     # A target body gives tracking cameras a stable look-at point.
-    spec.worldbody.add_body(name="workspace_target", pos=[0.46, 0.0, 0.64])
+    spec.worldbody.add_body(name="workspace_target", pos=[0.46, 0.0, 0.84])
 
-    table_surface = 0.585
+    table_surface = 0.79
     _add_cube(spec, "red_cube", [0.46, 0.00, table_surface + 0.041], [0.92, 0.12, 0.12, 1])
     _add_cube(spec, "blue_cube", [0.43, 0.18, table_surface + 0.041], [0.08, 0.35, 0.95, 1])
     _add_cube(spec, "yellow_cube", [0.43, -0.18, table_surface + 0.041], [1.0, 0.62, 0.05, 1])
@@ -163,14 +182,16 @@ def build_model() -> mujoco.MjModel:
     # Rebuild by joint/actuator name after inserting Dex1 joints into the tree.
     _rebuild_stand_key(spec, captured_stand)
 
-    camera_target = [0.46, 0.0, 0.64]
-    left_camera_target = [0.43, 0.18, 0.625]
-    right_camera_target = [0.43, -0.18, 0.625]
-    high_pos = [0.05, 0.0, 1.30]
-    # Optical centers are expressed in each mirrored Dex1 base frame. They sit
-    # just ahead of the housing so the mesh cannot occlude the RGB stream.
-    left_wrist_pos = [0.0, -0.055, 0.14]
-    right_wrist_pos = [0.0, 0.055, 0.14]
+    camera_target = [0.46, 0.0, 0.84]
+    high_pos = [0.08, 0.0, 1.38]
+    # Reference frames show each optical center between the two fingers. Dex1
+    # child +Y is forward, so x=+X/y=+Z gives camera optical -Z along +Y.
+    wrist_pos = [0.0, 0.070, 0.0]
+    wrist_pitch = np.deg2rad(30.0)
+    wrist_xyaxes = [
+        1.0, 0.0, 0.0,
+        0.0, float(np.sin(wrist_pitch)), float(np.cos(wrist_pitch)),
+    ]
     left_gripper = spec.body("left_dex1_base_link")
     right_gripper = spec.body("right_dex1_base_link")
     if left_gripper is None or right_gripper is None:
@@ -180,25 +201,21 @@ def build_model() -> mujoco.MjModel:
         name="cam_left_high",
         pos=high_pos,
         xyaxes=_world_camera_xyaxes(high_pos, camera_target),
-        fovy=62,
+        fovy=58,
         resolution=[640, 480],
     )
     left_gripper.add_camera(
         name="cam_left_wrist",
-        pos=left_wrist_pos,
-        xyaxes=_camera_xyaxes(
-            spec, "left_dex1_base_link", left_wrist_pos, left_camera_target
-        ),
-        fovy=72,
+        pos=wrist_pos,
+        xyaxes=wrist_xyaxes,
+        fovy=90,
         resolution=[640, 480],
     )
     right_gripper.add_camera(
         name="cam_right_wrist",
-        pos=right_wrist_pos,
-        xyaxes=_camera_xyaxes(
-            spec, "right_dex1_base_link", right_wrist_pos, right_camera_target
-        ),
-        fovy=72,
+        pos=wrist_pos,
+        xyaxes=wrist_xyaxes,
+        fovy=90,
         resolution=[640, 480],
     )
     return spec.compile()
@@ -216,4 +233,34 @@ def reset_to_stand(model: mujoco.MjModel, data: mujoco.MjData) -> None:
     data.qpos[:robot_nq] = model.key_qpos[key, :robot_nq]
     data.ctrl[:] = model.key_ctrl[key]
     Dex1Controller(model).set_open(data)
+    mujoco.mj_forward(model, data)
+
+
+def reset_to_reference_pose(model: mujoco.MjModel, data: mujoco.MjData) -> None:
+    """Reset to the synchronized first state of public dataset episode 0."""
+    reset_to_stand(model, data)
+    arm_names = (
+        f"{side}_{joint}_joint"
+        for side in ("left", "right")
+        for joint in (
+            "shoulder_pitch", "shoulder_roll", "shoulder_yaw", "elbow",
+            "wrist_roll", "wrist_pitch", "wrist_yaw",
+        )
+    )
+    for name, value in zip(arm_names, REFERENCE_EP0_STATE[:14], strict=True):
+        joint_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, name)
+        actuator_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
+        data.qpos[model.jnt_qposadr[joint_id]] = value
+        data.ctrl[actuator_id] = value
+    Dex1Controller(model).set_motor_commands(
+        data, REFERENCE_EP0_STATE[14], REFERENCE_EP0_STATE[15]
+    )
+    # Put jaw qpos at the mapped target too, avoiding a transient in frame 0.
+    for side, command in zip(("left", "right"), REFERENCE_EP0_STATE[14:], strict=True):
+        target = motor_radians_to_jaw_position(float(command))
+        for finger in ("Joint1_1", "Joint2_1"):
+            joint_id = mujoco.mj_name2id(
+                model, mujoco.mjtObj.mjOBJ_JOINT, f"{side}_dex1_{finger}"
+            )
+            data.qpos[model.jnt_qposadr[joint_id]] = target
     mujoco.mj_forward(model, data)

@@ -18,7 +18,7 @@ from action_schema import (
 from adaptive_retimer import AdaptiveChunkExecutor, AdaptiveRetimer
 from g1_dual_arm_ik import G1DualArmIK
 from vla_stub import make_reach_chunk
-from stack_scene import build_model, reset_to_stand
+from stack_scene import build_model, reset_to_reference_pose
 from dex1_gripper import Dex1Controller
 
 
@@ -34,8 +34,8 @@ def stability_score(model: mujoco.MjModel, data: mujoco.MjData) -> float:
 def build_problem(model: mujoco.MjModel, data: mujoco.MjData, ik: G1DualArmIK):
     left_position, left_quaternion = ik.pose("left")
     right_position, right_quaternion = ik.pose("right")
-    left_target = left_position + np.array([0.30, 0.055, 0.10])
-    right_target = right_position + np.array([0.20, -0.035, 0.055])
+    left_target = left_position + np.array([0.055, 0.025, 0.035])
+    right_target = right_position + np.array([0.050, -0.025, 0.035])
     raw = make_reach_chunk(
         left_position,
         mujoco_wxyz_to_vla_xyzw(left_quaternion),
@@ -54,10 +54,8 @@ def build_problem(model: mujoco.MjModel, data: mujoco.MjData, ik: G1DualArmIK):
 def run(*, adaptive: bool, gui: bool, output: Path | None = None) -> dict:
     model = build_model()
     data = mujoco.MjData(model)
-    stand_key = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_KEY, "stand")
-    reset_to_stand(model, data)
-    stand_control = model.key_ctrl[stand_key].copy()
-    data.ctrl[:] = stand_control
+    reset_to_reference_pose(model, data)
+    hold_control = data.ctrl.copy()
 
     ik = G1DualArmIK(model, data)
     ik.reset()
@@ -85,7 +83,9 @@ def run(*, adaptive: bool, gui: bool, output: Path | None = None) -> dict:
     start_time = data.time
     max_joint_speed = 0.0
     max_joint_acceleration = 0.0
+    max_joint_jerk = 0.0
     previous_arm_velocity = np.zeros(14)
+    previous_arm_acceleration = np.zeros(14)
     arm_dofs = np.concatenate((ik.left["dof"], ik.right["dof"]))
     final_errors = {}
     settle_time = 1.0
@@ -121,7 +121,7 @@ def run(*, adaptive: bool, gui: bool, output: Path | None = None) -> dict:
                 and viewer_context is None
             ):
                 break
-            data.ctrl[:] = stand_control
+            data.ctrl[:] = hold_control
             dex1.set_motor_commands(data, action[14], action[15])
             final_errors = ik.step(
                 np.concatenate((
@@ -137,10 +137,15 @@ def run(*, adaptive: bool, gui: bool, output: Path | None = None) -> dict:
             arm_velocity = data.qvel[arm_dofs].copy()
             arm_acceleration = (arm_velocity - previous_arm_velocity) / model.opt.timestep
             max_joint_speed = max(max_joint_speed, float(np.max(np.abs(arm_velocity))))
+            arm_jerk = (
+                arm_acceleration - previous_arm_acceleration
+            ) / model.opt.timestep
             max_joint_acceleration = max(
                 max_joint_acceleration, float(np.max(np.abs(arm_acceleration)))
             )
+            max_joint_jerk = max(max_joint_jerk, float(np.max(np.abs(arm_jerk))))
             previous_arm_velocity = arm_velocity
+            previous_arm_acceleration = arm_acceleration
 
             if viewer_context is not None:
                 if not viewer_context.is_running():
@@ -172,6 +177,7 @@ def run(*, adaptive: bool, gui: bool, output: Path | None = None) -> dict:
         "stability_score": stability_score(model, data),
         "max_joint_speed_rad_s": max_joint_speed,
         "max_joint_acceleration_rad_s2": max_joint_acceleration,
+        "max_joint_jerk_rad_s3": max_joint_jerk,
         **final_errors,
     }
     print(json.dumps(result, indent=2))

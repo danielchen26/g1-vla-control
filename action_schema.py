@@ -1,9 +1,10 @@
 """VLA-compatible dual end-effector action representation.
 
-The checkpoint LGG100/stack-cube-eef-24k uses 16 values:
+The checkpoint LGG100/stack-cube-eef-24k publishes 16 normalized values:
 left xyz + quaternion, right xyz + quaternion, and two gripper values.
-Checkpoint normalization statistics indicate an xyzw quaternion convention.
-Conversion to MuJoCo's wxyz convention happens only at the simulator boundary.
+A 95,966-frame audit strongly supports pelvis-frame positions, a 50 mm wrist
+EEF offset, and xyzw quaternions. The author's exact transform remains missing.
+Conversion to world coordinates and MuJoCo wxyz happens at the simulator boundary.
 """
 
 from __future__ import annotations
@@ -29,12 +30,56 @@ def vla_xyzw_to_mujoco_wxyz(q: np.ndarray) -> np.ndarray:
     return q[[3, 0, 1, 2]]
 
 
+def quaternion_multiply_wxyz(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Hamilton product for MuJoCo-order quaternions."""
+    aw, ax, ay, az = normalize_quaternion(a)
+    bw, bx, by, bz = normalize_quaternion(b)
+    return normalize_quaternion(np.array([
+        aw * bw - ax * bx - ay * by - az * bz,
+        aw * bx + ax * bw + ay * bz - az * by,
+        aw * by - ax * bz + ay * bw + az * bx,
+        aw * bz + ax * by - ay * bx + az * bw,
+    ]))
+
+
+def quaternion_to_matrix_wxyz(q: np.ndarray) -> np.ndarray:
+    w, x, y, z = normalize_quaternion(q)
+    return np.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+        [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+        [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+    ])
+
+
 def normalize_quaternion(q: np.ndarray) -> np.ndarray:
     q = np.asarray(q, dtype=np.float64)
     norm = np.linalg.norm(q)
     if norm < 1e-9:
         raise ValueError("Quaternion norm is zero")
     return q / norm
+
+
+def pelvis_vla_action_to_world_mujoco(
+    action: np.ndarray,
+    pelvis_position: np.ndarray,
+    pelvis_quaternion_wxyz: np.ndarray,
+) -> np.ndarray:
+    """Convert pelvis-frame xyzw EEF targets into world-frame wxyz targets."""
+    action = np.asarray(action, dtype=np.float64)
+    if action.shape != (ACTION_DIM,):
+        raise ValueError(f"action must have shape ({ACTION_DIM},)")
+    pelvis_position = np.asarray(pelvis_position, dtype=np.float64)
+    rotation = quaternion_to_matrix_wxyz(pelvis_quaternion_wxyz)
+    result = action.copy()
+    for position_slice, quaternion_slice in (
+        (LEFT_POS, LEFT_QUAT), (RIGHT_POS, RIGHT_QUAT)
+    ):
+        result[position_slice] = pelvis_position + rotation @ action[position_slice]
+        relative = vla_xyzw_to_mujoco_wxyz(action[quaternion_slice])
+        result[quaternion_slice] = quaternion_multiply_wxyz(
+            pelvis_quaternion_wxyz, relative
+        )
+    return result
 
 
 def slerp(q0: np.ndarray, q1: np.ndarray, fraction: float) -> np.ndarray:

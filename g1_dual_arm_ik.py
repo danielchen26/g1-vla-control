@@ -53,16 +53,16 @@ class G1DualArmIK:
         self.data = data
         self.damping = damping
         self.max_joint_speed = max_joint_speed
-        self.left_body = self._body_id("left_wrist_yaw_link")
-        self.right_body = self._body_id("right_wrist_yaw_link")
+        self.left_site = self._site_id("left_eef")
+        self.right_site = self._site_id("right_eef")
         self.left = self._joint_info(LEFT_JOINTS)
         self.right = self._joint_info(RIGHT_JOINTS)
         self.q_target = data.qpos.copy()
 
-    def _body_id(self, name: str) -> int:
-        result = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, name)
+    def _site_id(self, name: str) -> int:
+        result = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, name)
         if result < 0:
-            raise ValueError(f"Missing body: {name}")
+            raise ValueError(f"Missing site: {name}")
         return result
 
     def _joint_info(self, names: list[str]) -> dict[str, np.ndarray]:
@@ -87,25 +87,29 @@ class G1DualArmIK:
         self.q_target[:] = self.data.qpos
 
     def pose(self, side: str) -> tuple[np.ndarray, np.ndarray]:
-        body = self.left_body if side == "left" else self.right_body
-        return self.data.xpos[body].copy(), self.data.xquat[body].copy()
+        site = self.left_site if side == "left" else self.right_site
+        quaternion = np.empty(4)
+        mujoco.mju_mat2Quat(quaternion, self.data.site_xmat[site])
+        return self.data.site_xpos[site].copy(), quaternion
 
     def _solve_side(
         self,
         info: dict[str, np.ndarray],
-        body: int,
+        site: int,
         target_position: np.ndarray,
         target_quaternion: np.ndarray,
         dt: float,
     ) -> tuple[float, float]:
         jac_position = np.zeros((3, self.model.nv))
         jac_rotation = np.zeros((3, self.model.nv))
-        mujoco.mj_jacBody(self.model, self.data, jac_position, jac_rotation, body)
+        mujoco.mj_jacSite(self.model, self.data, jac_position, jac_rotation, site)
         jacobian = np.vstack((jac_position[:, info["dof"]], jac_rotation[:, info["dof"]]))
 
-        position_error = np.asarray(target_position) - self.data.xpos[body]
+        position_error = np.asarray(target_position) - self.data.site_xpos[site]
+        current_quaternion = np.empty(4)
+        mujoco.mju_mat2Quat(current_quaternion, self.data.site_xmat[site])
         rotation_error = orientation_error(
-            np.asarray(target_quaternion), self.data.xquat[body]
+            np.asarray(target_quaternion), current_quaternion
         )
         error = np.concatenate((position_error, 0.45 * rotation_error))
         regularizer = self.damping ** 2 * np.eye(6)
@@ -133,10 +137,10 @@ class G1DualArmIK:
         dt: float,
     ) -> dict[str, float]:
         left_errors = self._solve_side(
-            self.left, self.left_body, left_action[:3], left_action[3:7], dt
+            self.left, self.left_site, left_action[:3], left_action[3:7], dt
         )
         right_errors = self._solve_side(
-            self.right, self.right_body, right_action[:3], right_action[3:7], dt
+            self.right, self.right_site, right_action[:3], right_action[3:7], dt
         )
         return {
             "left_position_error": left_errors[0],

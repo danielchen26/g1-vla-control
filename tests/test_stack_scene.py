@@ -3,12 +3,17 @@ from pathlib import Path
 import unittest
 
 import mujoco
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from stack_scene import build_model, reset_to_stand, CAMERA_NAMES
+from stack_scene import (
+    build_model, reset_to_stand, reset_to_reference_pose,
+    CAMERA_NAMES, REFERENCE_EP0_STATE,
+)
 from dex1_gripper import (
-    Dex1Controller, motor_radians_to_jaw_position, JAW_MIN_M, JAW_MAX_M,
+    Dex1Controller, motor_radians_to_jaw_position,
+    jaw_position_to_motor_radians, JAW_MIN_M, JAW_MAX_M,
 )
 
 
@@ -59,11 +64,67 @@ class StackSceneTests(unittest.TestCase):
         self.assertEqual(len(controller.actuators["left"]), 2)
         self.assertEqual(len(controller.actuators["right"]), 2)
 
+    def test_both_dex1_grippers_point_along_wrist_forward_axis(self):
+        for side in ("left", "right"):
+            wrist_id = mujoco.mj_name2id(
+                self.model, mujoco.mjtObj.mjOBJ_BODY, f"{side}_wrist_yaw_link"
+            )
+            base_id = mujoco.mj_name2id(
+                self.model, mujoco.mjtObj.mjOBJ_BODY, f"{side}_dex1_base_link"
+            )
+            tips = []
+            for link in ("Link1_3", "Link2_2"):
+                body_id = mujoco.mj_name2id(
+                    self.model,
+                    mujoco.mjtObj.mjOBJ_BODY,
+                    f"{side}_dex1_{link}",
+                )
+                tips.append(self.data.xpos[body_id])
+            finger_direction = np.mean(tips, axis=0) - self.data.xpos[base_id]
+            wrist_forward = self.data.xmat[wrist_id].reshape(3, 3)[:, 0]
+            self.assertGreater(float(finger_direction @ wrist_forward), 0.05)
+
+    def test_eef_sites_are_50mm_along_wrist_forward(self):
+        for side in ("left", "right"):
+            wrist = mujoco.mj_name2id(
+                self.model, mujoco.mjtObj.mjOBJ_BODY, f"{side}_wrist_yaw_link"
+            )
+            site = mujoco.mj_name2id(
+                self.model, mujoco.mjtObj.mjOBJ_SITE, f"{side}_eef"
+            )
+            offset = self.data.site_xpos[site] - self.data.xpos[wrist]
+            forward = self.data.xmat[wrist].reshape(3, 3)[:, 0]
+            np.testing.assert_allclose(offset, 0.05 * forward, atol=1e-9)
+
+    def test_public_episode_zero_reference_pose(self):
+        data = mujoco.MjData(self.model)
+        reset_to_reference_pose(self.model, data)
+        values = []
+        for side in ("left", "right"):
+            for joint in (
+                "shoulder_pitch", "shoulder_roll", "shoulder_yaw", "elbow",
+                "wrist_roll", "wrist_pitch", "wrist_yaw",
+            ):
+                joint_id = mujoco.mj_name2id(
+                    self.model,
+                    mujoco.mjtObj.mjOBJ_JOINT,
+                    f"{side}_{joint}_joint",
+                )
+                values.append(data.qpos[self.model.jnt_qposadr[joint_id]])
+        np.testing.assert_allclose(values, REFERENCE_EP0_STATE[:14], atol=1e-8)
+
     def test_dex1_motor_mapping_matches_limits(self):
-        self.assertAlmostEqual(motor_radians_to_jaw_position(0.0), JAW_MIN_M)
-        self.assertAlmostEqual(motor_radians_to_jaw_position(5.5), JAW_MAX_M)
-        self.assertAlmostEqual(motor_radians_to_jaw_position(-10.0), JAW_MIN_M)
-        self.assertAlmostEqual(motor_radians_to_jaw_position(10.0), JAW_MAX_M)
+        self.assertAlmostEqual(motor_radians_to_jaw_position(0.0), JAW_MAX_M)
+        self.assertAlmostEqual(motor_radians_to_jaw_position(5.5), JAW_MIN_M)
+        self.assertAlmostEqual(motor_radians_to_jaw_position(-10.0), JAW_MAX_M)
+        self.assertAlmostEqual(motor_radians_to_jaw_position(10.0), JAW_MIN_M)
+        for command in np.linspace(0.0, 5.5, 12):
+            self.assertAlmostEqual(
+                jaw_position_to_motor_radians(
+                    motor_radians_to_jaw_position(command)
+                ),
+                command,
+            )
 
     def test_robot_and_cubes_remain_stable(self):
         reset_to_stand(self.model, self.data)

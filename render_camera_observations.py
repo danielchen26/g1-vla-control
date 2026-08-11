@@ -5,7 +5,7 @@ from pathlib import Path
 import mujoco
 from PIL import Image, ImageDraw
 
-from stack_scene import build_model, reset_to_stand, CAMERA_NAMES
+from stack_scene import build_model, reset_to_reference_pose, CAMERA_NAMES
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "results" / "camera_observations"
@@ -15,7 +15,7 @@ def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     model = build_model()
     data = mujoco.MjData(model)
-    reset_to_stand(model, data)
+    reset_to_reference_pose(model, data)
     # Let free cubes settle on the table while the robot holds its stand pose.
     for _ in range(250):
         mujoco.mj_step(model, data)

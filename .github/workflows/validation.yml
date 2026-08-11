@@ -1,0 +1,54 @@
+name: MuJoCo validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  headless-smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      MUJOCO_GL: osmesa
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install headless OpenGL
+        run: sudo apt-get update && sudo apt-get install -y libosmesa6 libgl1-mesa-glx
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Unit and scene tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Deterministic dynamics smoke tests
+        run: |
+          python run_simulation.py --baseline --output results/baseline.json
+          python run_simulation.py --output results/adaptive.json
+
+      - name: Three-camera render smoke test
+        run: python render_camera_observations.py
+
+      - name: Verify generated report
+        run: |
+          python generate_report.py
+          ! grep -Eq 'CHECKROWS|TESTPASS|TESTTOTAL|PROGRESS%' validation_report.html
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-evidence
+          path: |
+            results/*.json
+            results/camera_observations/*.png
+            validation_report.html

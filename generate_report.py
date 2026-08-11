@@ -15,22 +15,26 @@ HISTORY_PATH = RESULTS / "validation_history.json"
 REPORT_PATH = ROOT / "validation_report.html"
 
 CHECKS = [
-    ("动作接口", "16 维双手 EEF schema", "pass", "本地实现并通过维度、归一化测试"),
-    ("四元数", "VLA xyzw ↔ MuJoCo wxyz", "pass", "边界转换与 round-trip 测试通过"),
+    ("公开数据", "100 episodes / 95,966 帧契约审计", "pass", "确认 raw parquet 为 14 关节绝对目标 + 2 Dex1 电机值，30 Hz"),
+    ("EEF Transform", "joint → pelvis-frame EEF 重建", "partial", "50 mm wrist offset + xyzw 与 norm stats 高度吻合；最大统计差 0.013，尚非作者源码"),
+    ("动作接口", "16 维双手 EEF schema", "pass", "逐维布局、维度和单位四元数验证通过"),
+    ("坐标边界", "pelvis EEF → world 与 xyzw ↔ wxyz", "pass", "转换函数及 round-trip/平移单测通过"),
     ("轨迹插值", "XYZ 插值与四元数 SLERP", "pass", "最短路径与单位四元数测试通过"),
-    ("末端执行器", "Unitree 官方 Dex1-1 URDF/STL", "pass", "已替换 Menagerie 原手模型；BSD-3-Clause"),
-    ("夹爪映射", "VLA 电机 0–5.5 rad → 双指行程", "pass", "左右各两个对称 prismatic actuator，端点测试通过"),
-    ("运动学", "双臂 7-DoF 阻尼最小二乘 IK", "pass", "左右手均在 MuJoCo 中收敛"),
-    ("动力学", "G1、Dex1、桌面与方块稳定性", "pass", "长时间站立和方块接触保持稳定"),
+    ("末端执行器", "Unitree 官方 Dex1-1 URDF/STL", "pass", "左右安装朝向验证；原 Menagerie 手已移除"),
+    ("夹爪映射", "电机 0 closed / 5.5 open", "pass", "同步首帧确认方向；指尖间距 0.021–0.100 m 且左右对称"),
+    ("合成抓取", "Dex1 预定位方块抓持", "pass", "零扰动左右 2/2；左手在 2 N 失效、右手在 4 N 失效；不是 VLA 抓取"),
+    ("真实目标 IK", "公开数据随机 EEF 目标回放", "pass", "250/250 在 2 mm / 1° 门槛内收敛，关节范围 100% 合规"),
+    ("连续轨迹回放", "Episode 0 全 678 帧动力学执行", "partial", "全程有限且站立；EEF P95 约 20 mm，数据没有 object state 可核对任务"),
+    ("长时间动力学", "30 秒站立、Dex1、桌面与方块", "pass", "pelvis ≥0.790 m，方块高度最大漂移约 1.1 mm"),
+    ("随机化", "20 组质量、摩擦与方块位置", "pass", "20/20 保持机器人和方块稳定"),
+    ("外部扰动", "躯干横向冲击恢复", "partial", "5–20 N 均恢复；40 N 倒地，60 N 漂移/倾斜超门槛"),
     ("观测渲染", "三路 640×480 RGB 相机", "pass", "训练数据同名高位、左右腕相机均可渲染"),
-    ("场景一致性", "桌面、彩色方块和相机标定", "partial", "物体与视角已建立；精确训练标定未公开"),
-    ("Chunk 连续性", "多个连续 VLA action chunk", "partial", "状态连续性单测通过；多 chunk 动力学待测"),
-    ("安全约束", "速度、加速度与 jerk", "partial", "关节速度/范围已限制；独立加速度与 jerk governor 待补"),
-    ("平衡反馈", "倾斜与外部扰动响应", "partial", "反馈已接入；随机扰动扫描待完成"),
-    ("Checkpoint 契约", "OpenPI config、数据变换与坐标系", "blocked", "norm_stats 已随 checkpoint 发布；仍缺 commit、config 和自定义 transform"),
-    ("真实数据回放", "Stack-the-cubes episode", "todo", "参考视频已下载；动作回放与坐标对齐待完成"),
-    ("任务指标", "抓取、移动、堆叠成功率", "todo", "需真实 VLA 或经过验证的记录轨迹"),
-    ("鲁棒性", "随机位置、质量、摩擦和扰动", "todo", "需要批量 episode 测试套件"),
+    ("视觉域一致性", "参考 frame-0 像素几何与外观", "partial", "物体均可见，但中心/尺度、夹爪外观、照明和背景差异显著"),
+    ("Chunk 连续性", "多个连续 VLA action chunk", "partial", "状态连续性单测通过；真实 VLA 多 chunk 尚未运行"),
+    ("安全约束", "速度、加速度、jerk 与不可达拒绝", "partial", "关节范围保持 100%；宽域测试出现饱和/碰撞，显式可达性和碰撞拒绝器待补"),
+    ("Checkpoint 结构", "Orbax 参数树与模型族", "partial", "强证据指向 Pi0Config(pi05=True)+LoRA；action pad=32、发布维度=16"),
+    ("Checkpoint 恢复", "OpenPI config 与 inference contract", "blocked", "仓库没有 config/model card；仍缺 commit、DataConfig 和字段映射"),
+    ("任务指标", "真实 VLA 抓取与堆叠成功率", "todo", "合成抓持已测；真实 checkpoint 尚未加载"),
     ("远程推理", "OpenPI WebSocket 与过期动作处理", "todo", "等待 Ubuntu NVIDIA 服务器"),
     ("真实 VLA", "checkpoint 闭环推理", "blocked", "需要匹配 config 和 NVIDIA 推理主机"),
     ("真机", "G1 EDU 分阶段部署", "todo", "仅在仿真安全门全部通过后进行"),
@@ -94,11 +98,29 @@ def main() -> None:
     adaptive = load_json("adaptive.json")
     baseline = load_json("baseline.json")
     tests = load_json("test_summary.json") or {"passed": 4, "failed": 0, "total": 4}
+    dataset = load_json("dataset_contract_audit.json")
+    deep = load_json("comprehensive_sim_validation.json")
+    visual = load_json("visual_fidelity_audit.json")
+    checkpoint = load_json("checkpoint_metadata_audit.json")
+    ik = deep.get("dataset_ik_replay", {})
+    episode_replay = deep.get("episode_zero_dynamics_replay", {})
+    workspace = deep.get("workspace_stress", {})
+    dex = deep.get("dex1_command_sweep", {})
+    grasp = deep.get("dex1_grasp_sweep", {})
+    long_run = deep.get("long_horizon_stability", {})
+    disturbance = deep.get("external_disturbance", {})
+    randomized = deep.get("randomized_scene", {})
     passed = sum(status == "pass" for _, _, status, _ in CHECKS)
     partial = sum(status == "partial" for _, _, status, _ in CHECKS)
     total = len(CHECKS)
     progress = round((passed + 0.5 * partial) / total * 100)
     generated = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    grasp_trials = grasp.get("trials", [])
+    random_trials = randomized.get("trials", [])
+    visual_summary = visual.get("summary", {})
+    transform_compare = dataset.get("reconstructed_training_transform", {}).get(
+        "published_norm_stats_comparison", {}
+    )
 
     template = r'''<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -110,11 +132,11 @@ def main() -> None:
 <div class="topbar"><div class="brand"><div class="brand-mark">G1</div><div>VLA 仿真验证中心</div></div><a class="live" href="https://github.com/danielchen26/g1-vla-control" target="_blank" rel="noreferrer">● PUBLIC GITHUB ↗</a></div>
 <section class="hero"><div><div class="eyebrow">UNITREE G1 · OPENPI · MUJOCO</div><h1>当前状态、证据与下一步。</h1><p>这是项目的持续更新工程面板。它记录真实完成项、代码入口、端到端 workflow，以及仍被 OpenPI 训练契约或远程 GPU 阻塞的内容。不会把合成轨迹测试描述成真实 VLA 成功。</p></div><div class="glass progress-card"><div class="progress-ring"><strong>PROGRESS%</strong><span>综合完成度</span></div><div class="ring-copy"><b>PASSED 项已验证</b> · PARTIAL 项部分完成 · 共 TOTAL 个门槛</div></div></section>
 <section class="grid"><div class="glass metric"><label>自动测试</label><strong>TESTPASS/TESTTOTAL</strong><small>通过</small></div><div class="glass metric"><label>末端执行器</label><strong>Dex1-1</strong><small>官方模型</small></div><div class="glass metric"><label>视觉输入</label><strong>3 路</strong><small>640×480</small></div><div class="glass metric"><label>真实 VLA</label><strong>未加载</strong><small style="color:var(--red)">等待 config/GPU</small></div></section>
-<nav class="tabs" aria-label="报告页面"><button class="tab-btn active" data-tab="overview">项目总览</button><button class="tab-btn" data-tab="requirements">VLA 接入需求</button><button class="tab-btn" data-tab="workflow">Workflow 与代码</button><button class="tab-btn" data-tab="evidence">证据与历史</button></nav>
+<nav class="tabs" aria-label="报告页面"><button class="tab-btn active" data-tab="overview">项目总览</button><button class="tab-btn" data-tab="deep">深度验证</button><button class="tab-btn" data-tab="requirements">VLA 接入需求</button><button class="tab-btn" data-tab="workflow">Workflow 与代码</button><button class="tab-btn" data-tab="evidence">证据与历史</button></nav>
 <div class="tab-panel active" data-panel="overview">
 <section class="glass section"><div class="section-head"><div><h2>可选调速模块回归结果</h2><p>这部分用于保证已有功能没有退化，不代表真实 VLA 已运行。</p></div><span class="pill pass"><i></i>两组均通过</span></div><div class="compare">
-<div class="run"><h3>Baseline · 1.0×</h3><div class="row"><span>执行时间</span><b>BASEDURATION s</b></div><div class="row"><span>左手 EEF 误差</span><b>BASELEFT mm</b></div><div class="row"><span>右手 EEF 误差</span><b>BASERIGHT mm</b></div><div class="row"><span>峰值关节速度</span><b>BASESPEED rad/s</b></div></div>
-<div class="run"><h3>Adaptive · 距离 + 稳定性</h3><div class="row"><span>执行时间</span><b>ADAPTDURATION s</b></div><div class="row"><span>左手 EEF 误差</span><b>ADAPTLEFT mm</b></div><div class="row"><span>右手 EEF 误差</span><b>ADAPTRIGHT mm</b></div><div class="row"><span>峰值关节速度</span><b>ADAPTSPEED rad/s</b></div></div></div></section>
+<div class="run"><h3>Baseline · 1.0×</h3><div class="row"><span>执行时间</span><b>BASEDURATION s</b></div><div class="row"><span>左手 EEF 误差</span><b>BASELEFT mm</b></div><div class="row"><span>右手 EEF 误差</span><b>BASERIGHT mm</b></div><div class="row"><span>峰值关节速度</span><b>BASESPEED rad/s</b></div><div class="row"><span>峰值加速度</span><b>BASEACCEL rad/s²</b></div><div class="row"><span>峰值 jerk</span><b style="color:var(--amber)">BASEJERK rad/s³</b></div></div>
+<div class="run"><h3>Adaptive · 距离 + 稳定性</h3><div class="row"><span>执行时间</span><b>ADAPTDURATION s</b></div><div class="row"><span>左手 EEF 误差</span><b>ADAPTLEFT mm</b></div><div class="row"><span>右手 EEF 误差</span><b>ADAPTRIGHT mm</b></div><div class="row"><span>峰值关节速度</span><b>ADAPTSPEED rad/s</b></div><div class="row"><span>峰值加速度</span><b>ADAPTACCEL rad/s²</b></div><div class="row"><span>峰值 jerk</span><b style="color:var(--amber)">ADAPTJERK rad/s³</b></div></div></div></section>
 <section class="glass section"><div class="section-head"><div><h2>目标端到端架构</h2><p>真实 VLA 验证默认绕过调速器；调速器只是后续可选层。</p></div></div><div class="flow"><div class="node">三路相机 + EEF 状态</div><div class="arrow">→</div><div class="node">Ubuntu GPU · OpenPI</div><div class="arrow">→</div><div class="node">16-D EEF Chunk</div><div class="arrow">→</div><div class="node">坐标/四元数转换</div><div class="arrow">→</div><div class="node">安全裁剪</div><div class="arrow">→</div><div class="node">G1 双臂 IK + Dex1</div><div class="arrow">→</div><div class="node">MuJoCo</div></div><p class="muted" style="margin-top:16px">可选分支：16-D EEF Chunk → Adaptive governor → IK。VLA smoke test 和第一轮闭环不依赖此分支。</p></section>
 </div><div class="tab-panel" data-panel="workflow">
 <section class="glass section"><div class="section-head"><div><h2>项目 Workflow</h2><p>按证据门槛推进，避免直接把未知输出发给机器人。</p></div></div><div class="notice" style="padding:14px 16px;border:1px solid;border-radius:14px;margin-bottom:18px"><b>当前真正缺少：</b> OpenPI Git commit、完整 TrainConfig/DataConfig、joint↔EEF 自定义 transform 和推理 observation key 映射。checkpoint 已包含 16-D state/action norm_stats，公开数据集也已存在，因此第一步不需要再采集 episode。</div><div class="workflow-grid"><div class="phase"><em>阶段 0 · 已完成</em><h3>仿真与硬件模型</h3><p>G1、官方 Dex1-1、桌面、三色方块、碰撞、三路 RGB 相机、动作 schema 与自动测试。</p></div><div class="phase"><em>阶段 1 · 当前阻塞</em><h3>OpenPI 契约恢复</h3><p>取得或重建 OpenPI commit、训练 config、输入 repack transform、EEF 坐标系与 action horizon；已有 norm_stats 可直接复用。</p></div><div class="phase"><em>阶段 2</em><h3>VLA Smoke Test</h3><p>只输入图片、状态和 prompt；检查输出形状、NaN、范围和左右手语义，不执行动作。</p></div><div class="phase"><em>阶段 3</em><h3>轨迹可视化</h3><p>在 GUI 中画出 EEF 目标与整段 chunk，确认坐标、四元数和夹爪方向。</p></div><div class="phase"><em>阶段 4</em><h3>安全闭环仿真</h3><p>VLA → 硬限制 → IK → Dex1 → MuJoCo；每 N 步重规划并处理超时动作。</p></div><div class="phase"><em>阶段 5–6</em><h3>批量评测与真机</h3><p>随机化 episode、统计抓取/堆叠成功率；通过安全门后再进行悬挂与真机测试。</p></div></div></section>
@@ -122,7 +144,14 @@ def main() -> None:
 <section class="glass section"><div class="section-head"><div><h2>VLA 接入详细要求</h2><p>这是向 checkpoint 作者索取资料以及恢复推理环境时的唯一核对入口。</p></div><span class="pill blocked"><i></i>4 项关键资料缺失</span></div><div class="requirement-grid"><div class="phase"><em>01 · 代码环境</em><h3>OpenPI 版本</h3><p>仓库 URL、Git commit、Python/JAX/Flax/Orbax 版本，以及 uv.lock 或 requirements。</p></div><div class="phase"><em>02 · 模型构造</em><h3>完整 Config</h3><p>config name、TrainConfig、DataConfig、pi0/pi0.5 类型、action_dim、action_horizon、dtype、asset_id。</p></div><div class="phase"><em>03 · 核心缺口</em><h3>Joint ↔ EEF Transform</h3><p>字段 repack、FK/逆变换、EEF link/site、坐标系、单位，以及 state/action 的逐维定义。</p></div><div class="phase"><em>04 · 动作语义</em><h3>Absolute / Delta</h3><p>动作是绝对目标还是增量；delta 所在 frame、四元数乘法顺序和 chunk 累积方式。</p></div><div class="phase"><em>05 · 归一化</em><h3>Norm 与 Padding</h3><p>使用 mean/std 还是 q01/q99、裁剪范围、16→32 padding/mask，以及输出 unnormalize 顺序。</p></div><div class="phase"><em>06 · 模型输入</em><h3>Observation Keys</h3><p>三路相机、state、prompt 的真实 key；RGB/BGR、HWC/CHW、resize/crop、数值范围和 image mask。</p></div><div class="phase"><em>07 · 闭环时序</em><h3>Chunk 执行契约</h3><p>训练/推理频率、每次执行步数、replan interval、chunk 重叠和 temporal ensemble。</p></div><div class="phase"><em>08 · 最佳证据</em><h3>Golden Sample</h3><p>三张图片、原始 state、transform/normalize 后输入，以及 unnormalize 后的预期 16-D action。</p></div><div class="phase"><em>09 · 仿真一致性</em><h3>标定与场景</h3><p>相机内外参、G1/Dex1 版本和 mount、EEF site、初始姿态、桌面/方块/接触参数。</p></div></div></section>
 <section class="glass section"><div class="section-head"><div><h2>外部信息清单</h2><p>加载真实 checkpoint 前需要确认的最小训练与推理契约。</p></div></div><table><thead><tr><th>信息</th><th>需要的具体内容</th><th>状态</th></tr></thead><tbody><tr><td>Checkpoint 资产</td><td>params、asset id、16-D norm_stats</td><td><span class="pill pass"><i></i>公开可用</span></td></tr><tr><td>OpenPI 版本</td><td>训练使用的仓库 URL、Git commit、依赖 lockfile</td><td><span class="pill blocked"><i></i>缺失</span></td></tr><tr><td>完整 Config</td><td>config name、TrainConfig、DataConfig、模型类型、action horizon/dim</td><td><span class="pill blocked"><i></i>缺失</span></td></tr><tr><td>数据 Transform</td><td>字段 repack、joint→EEF、坐标系、absolute/delta、四元数顺序、padding</td><td><span class="pill blocked"><i></i>缺失</span></td></tr><tr><td>推理契约</td><td>三路图像 key、state/prompt key、预处理及输出后处理</td><td><span class="pill blocked"><i></i>缺失</span></td></tr><tr><td>Golden sample</td><td>一帧原始 observation、变换后 policy 输入和对应 16-D 输出</td><td><span class="pill todo"><i></i>强烈建议</span></td></tr><tr><td>仿真标定</td><td>EEF site、相机内外参、Dex1 mount、桌面和方块参数</td><td><span class="pill partial"><i></i>当前为近似</span></td></tr></tbody></table></section>
 </div><div class="tab-panel" data-panel="workflow">
-<section class="glass section"><div class="section-head"><div><h2>代码与责任边界</h2><p>当前工作区 ~/g1_vla_control/ 的主要入口。</p></div></div><table><thead><tr><th>文件</th><th>职责</th><th>当前状态</th></tr></thead><tbody><tr><td><code>stack_scene.py</code></td><td>组装 G1、Dex1、桌面、方块和三路相机</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>dex1_gripper.py</code></td><td>官方 URDF/STL 接入与 0–5.5 rad 夹爪映射</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>action_schema.py</code></td><td>16-D EEF、xyzw/wxyz 转换与 SLERP</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>g1_dual_arm_ik.py</code></td><td>双臂 IK、关节范围和速度裁剪</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>render_camera_observations.py</code></td><td>生成三路 VLA RGB 观测和 contact sheet</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>adaptive_retimer.py</code></td><td>可选调速层，不属于 VLA smoke test 必需路径</td><td><span class="pill pass"><i></i>可选</span></td></tr><tr><td><code>run_validation.py</code></td><td>自动测试、JSON 证据、历史与 HTML 更新</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>OpenPI remote adapter</code></td><td>真实 checkpoint WebSocket 推理</td><td><span class="pill blocked"><i></i>等待 config/GPU</span></td></tr></tbody></table></section>
+<section class="glass section"><div class="section-head"><div><h2>代码与责任边界</h2><p>当前工作区 ~/g1_vla_control/ 的主要入口。</p></div></div><table><thead><tr><th>文件</th><th>职责</th><th>当前状态</th></tr></thead><tbody><tr><td><code>stack_scene.py</code></td><td>组装 G1、Dex1、桌面、方块和三路相机</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>dex1_gripper.py</code></td><td>官方 URDF/STL 接入与 0–5.5 rad 夹爪映射</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>action_schema.py</code></td><td>16-D EEF、xyzw/wxyz 转换与 SLERP</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>g1_dual_arm_ik.py</code></td><td>双臂 IK、关节范围和速度裁剪</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>render_camera_observations.py</code></td><td>生成三路 VLA RGB 观测和 contact sheet</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>adaptive_retimer.py</code></td><td>可选调速层，不属于 VLA smoke test 必需路径</td><td><span class="pill pass"><i></i>可选</span></td></tr><tr><td><code>run_validation.py</code></td><td>自动测试、JSON 证据、历史与 HTML 更新</td><td><span class="pill pass"><i></i>已验证</span></td></tr><tr><td><code>dataset_contract_audit.py</code></td><td>100 episodes 数据语义、时序、FK 与 norm_stats 取证</td><td><span class="pill pass"><i></i>已执行</span></td></tr><tr><td><code>comprehensive_sim_validation.py</code></td><td>Dex1、抓持、250 目标 IK、长时间、扰动与随机化</td><td><span class="pill pass"><i></i>已执行</span></td></tr><tr><td><code>visual_fidelity_audit.py</code></td><td>三路 frame-0 物体可见性、中心与尺度差异</td><td><span class="pill partial"><i></i>量化不匹配</span></td></tr><tr><td><code>checkpoint_metadata_audit.py</code></td><td>Orbax 参数树、模型族和 action padding 审计</td><td><span class="pill partial"><i></i>结构可识别</span></td></tr><tr><td><code>run_deep_validation.py</code></td><td>一键运行所有本地可行的深度验证</td><td><span class="pill pass"><i></i>可复现</span></td></tr><tr><td><code>.github/workflows/validation.yml</code></td><td>Ubuntu headless CI 与证据 artifact</td><td><span class="pill partial"><i></i>等待 GitHub 首次运行</span></td></tr><tr><td><code>OpenPI remote adapter</code></td><td>真实 checkpoint WebSocket 推理</td><td><span class="pill blocked"><i></i>等待 config/GPU</span></td></tr></tbody></table></section>
+</div><div class="tab-panel" data-panel="deep">
+<section class="glass section"><div class="section-head"><div><h2>公开数据契约取证</h2><p>不是根据文件名猜测，而是遍历全部 episode、执行 FK 并与 checkpoint norm_stats 对照。</p></div><span class="pill partial"><i></i>Transform 高度支持，非精确确认</span></div><section class="grid"><div class="run"><label class="muted">审计规模</label><strong>DATAFRAMES</strong><small> 帧 / 100 episodes</small></div><div class="run"><label class="muted">Action → State 最佳延迟</label><strong>DATALAG</strong><small> 帧 · 0.10 s</small></div><div class="run"><label class="muted">最大 norm 统计差</label><strong>TRANSFORMERR</strong><small> 非零</small></div><div class="run"><label class="muted">数据频率</label><strong>30 Hz</strong><small> 已实测</small></div></section><div class="requirement-grid"><div class="phase"><em>RAW PARQUET · 已确认</em><h3>关节空间绝对目标</h3><p>前 14 维是左右各 7 个关节位置，最后两维是 Dex1 电机角；不是 raw EEF，也不是 delta action。</p></div><div class="phase"><em>FK 假设 · 高度支持</em><h3>Pelvis-frame EEF</h3><p>每侧 wrist_yaw_link 沿局部 +X 偏移 50 mm，位置在 pelvis frame，四元数为 xyzw。</p></div><div class="phase"><em>时序 · 已确认</em><h3>约 3 帧响应延迟</h3><p>action[t] 与 state[t+3] 的标准化 RMSE 最低；公开轨迹按 30 Hz 记录。</p></div></div><div class="run" style="margin-top:18px"><h3>Episode 0 · 全 EPFRAMES 帧连续动力学回放</h3><div class="row"><span>公开轨迹时长</span><b>EPDURATION s</b></div><div class="row"><span>双臂关节 RMSE P95</span><b>EPARMP95 rad</b></div><div class="row"><span>EEF 位置误差 P95</span><b>EPEEFP95 mm</b></div><div class="row"><span>最低 pelvis 高度</span><b>EPPELVIS m</b></div><div class="row"><span>方块轨迹真值</span><b style="color:var(--amber)">数据集未发布</b></div></div></section>
+<section class="glass section"><div class="section-head"><div><h2>真实数据目标 IK</h2><p>从 95,966 帧中随机抽样，joint action 经 FK 变为 EEF，再从对应 state 反解。</p></div><span class="pill pass"><i></i>IKSUCC 成功</span></div><div class="compare"><div class="run"><h3>IKSAMPLES 个真实目标</h3><div class="row"><span>位置误差 P95</span><b>IKP95MM mm</b></div><div class="row"><span>姿态误差 P95</span><b>IKP95DEG°</b></div><div class="row"><span>关节范围合规</span><b>100%</b></div></div><div class="run"><h3>Dex1 几何与抓持</h3><div class="row"><span>指尖间距</span><b>DEXCLOSEDMM–DEXOPENMM mm</b></div><div class="row"><span>左右最大差异</span><b>DEXSYMMM mm</b></div><div class="row"><span>预定位抓持</span><b>GRASPPASS</b></div><div class="row"><span>最大已测持握扰动</span><b>GRASPFORCE N</b></div></div></div></section>
+<section class="glass section"><div class="section-head"><div><h2>OOD 工作空间与碰撞压力测试</h2><p>故意从宽于训练分布的体积随机采样，验证不能执行的目标是否会被安全拒绝。</p></div><span class="pill partial"><i></i>发现安全门缺口</span></div><div class="compare"><div class="run"><h3>WORKSAMPLES 组双手随机目标</h3><div class="row"><span>单臂目标成功率</span><b>WORKPERARM</b></div><div class="row"><span>双手同时成功率</span><b>WORKDUAL</b></div><div class="row"><span>关节范围合规</span><b>100%</b></div><div class="row"><span>关节极限饱和率</span><b>WORKSAT</b></div><div class="row"><span>禁区接触率</span><b>WORKCONTACT</b></div><div class="row"><span>显式不可达拒绝器</span><b style="color:var(--red)">未实现</b></div></div><div class="camera"><img src="results/workspace_success_heatmap.png"><div>宽域 X–Z 位置成功率热图 · 绿色高 / 红色低</div></div></div><p class="muted" style="margin-top:16px">结论：IK 的关节裁剪有效，但仅靠裁剪不足以保证安全。接入真实 VLA 前必须增加可达性预检、碰撞预测和不可达目标拒绝。</p></section>
+<section class="glass section"><div class="section-head"><div><h2>动力学、鲁棒性与失败边界</h2><p>明确记录通过项和失效阈值，而不是只展示成功案例。</p></div></div><div class="requirement-grid"><div class="phase"><em>长时间 · 通过</em><h3>LONGSECONDS 秒稳定</h3><p>Pelvis 最低 PELVISMIN m；三块方块最大高度漂移 CUBEDRIFT mm；全程无 NaN。</p></div><div class="phase"><em>随机化 · 通过</em><h3>RANDPASS/RANDTOTAL</h3><p>方块质量 0.08–0.30 kg、摩擦 0.3–1.3 及位置扰动下保持稳定。</p></div><div class="phase"><em>扰动 · 有边界</em><h3>连续通过至 FORCEPASS N</h3><p>40 N 测试倒地；60 N 测试底座漂移/倾斜超门槛，因此平衡只能标记为部分完成。</p></div></div></section>
+<section class="glass section"><div class="section-head"><div><h2>视觉域与 Checkpoint 结构</h2><p>观测可用不等于训练域一致，结构可识别也不等于 checkpoint 可恢复。</p></div></div><div class="compare"><div class="run"><h3>Frame-0 视觉对照</h3><div class="row"><span>共同可见彩色物体</span><b>VISCOMMON</b></div><div class="row"><span>归一化中心误差均值</span><b>VISCENTER</b></div><div class="row"><span>面积比例中位数</span><b>VISAREA×</b></div><div class="row"><span>精确标定</span><b style="color:var(--amber)">未通过</b></div></div><div class="run"><h3>Orbax Metadata</h3><div class="row"><span>模型族证据</span><b>π0.5 + LoRA</b></div><div class="row"><span>内部 action padding</span><b>PADDED action dim</b></div><div class="row"><span>发布机器人维度</span><b>16</b></div><div class="row"><span>安全恢复</span><b style="color:var(--red)">否 · config 缺失</b></div></div></div></section>
+<section class="glass section notice"><b>深度验证结论边界：</b> 数据语义、候选 FK、IK、Dex1 几何、合成抓持和本地动力学都有机器可读证据；视觉域仍明显不匹配，FK 与作者实现仍有小统计差异，真实 VLA 网络从未加载。</section>
 </div><div class="tab-panel" data-panel="evidence">
 <section class="glass section"><div class="section-head"><div><h2>当前仿真观测</h2><p>MuJoCo 使用训练数据同名的三路相机。</p></div><span class="pill partial"><i></i>标定为近似值</span></div><div class="camera-grid"><div class="camera"><img src="results/camera_observations/cam_left_high.png"><div>cam_left_high · 640×480 RGB</div></div><div class="camera"><img src="results/camera_observations/cam_left_wrist.png"><div>cam_left_wrist · 640×480 RGB</div></div><div class="camera"><img src="results/camera_observations/cam_right_wrist.png"><div>cam_right_wrist · 640×480 RGB</div></div></div></section>
 <section class="glass section"><div class="section-head"><div><h2>验证矩阵</h2><p>“部分完成”和“阻塞”不得表述为已经完成。</p></div></div><table><thead><tr><th>领域</th><th>验证门槛</th><th>状态</th><th>证据 / 下一步</th></tr></thead><tbody>CHECKROWS</tbody></table></section>
@@ -143,8 +172,47 @@ const initial=location.hash.slice(1);if(buttons.some(b=>b.dataset.tab===initial)
         "EEFERROR": fmt(adaptive.get("left_final_error_m", 0) * 1000, 1),
         "BASEDURATION": fmt(baseline.get("duration")), "BASELEFT": fmt(baseline.get("left_final_error_m", 0) * 1000, 1),
         "BASERIGHT": fmt(baseline.get("right_final_error_m", 0) * 1000, 1), "BASESPEED": fmt(baseline.get("max_joint_speed_rad_s")),
+        "BASEACCEL": fmt(baseline.get("max_joint_acceleration_rad_s2"), 1),
+        "BASEJERK": fmt(baseline.get("max_joint_jerk_rad_s3"), 0),
         "ADAPTDURATION": fmt(adaptive.get("duration")), "ADAPTLEFT": fmt(adaptive.get("left_final_error_m", 0) * 1000, 1),
         "ADAPTRIGHT": fmt(adaptive.get("right_final_error_m", 0) * 1000, 1), "ADAPTSPEED": fmt(adaptive.get("max_joint_speed_rad_s")),
+        "ADAPTACCEL": fmt(adaptive.get("max_joint_acceleration_rad_s2"), 1),
+        "ADAPTJERK": fmt(adaptive.get("max_joint_jerk_rad_s3"), 0),
+        "DATAFRAMES": f"{dataset.get('frames', 0):,}",
+        "DATALAG": str(dataset.get("action_state_timing", {}).get("best_lag_frames", "—")),
+        "TRANSFORMERR": fmt(transform_compare.get("max_any_stat_error"), 4),
+        "EPFRAMES": str(episode_replay.get("frames", "—")),
+        "EPDURATION": fmt(episode_replay.get("duration_s"), 2),
+        "EPARMP95": fmt(episode_replay.get("arm_joint_rmse_rad", {}).get("p95"), 3),
+        "EPEEFP95": fmt(episode_replay.get("eef_position_error_m", {}).get("p95", 0) * 1000, 2),
+        "EPPELVIS": fmt(episode_replay.get("minimum_pelvis_height_m"), 3),
+        "IKSAMPLES": str(ik.get("samples", "—")),
+        "IKSUCC": fmt(ik.get("success_rate", 0) * 100, 1, "%"),
+        "IKP95MM": fmt(ik.get("position_error_m", {}).get("p95", 0) * 1000, 2),
+        "IKP95DEG": fmt(ik.get("orientation_error_deg", {}).get("p95"), 2),
+        "WORKSAMPLES": str(workspace.get("dual_target_samples", "—")),
+        "WORKPERARM": fmt(workspace.get("per_arm_target_success_rate", 0) * 100, 1, "%"),
+        "WORKDUAL": fmt(workspace.get("dual_target_success_rate", 0) * 100, 1, "%"),
+        "WORKSAT": fmt(workspace.get("joint_limit_saturation_rate", 0) * 100, 1, "%"),
+        "WORKCONTACT": fmt(workspace.get("forbidden_contact_rate", 0) * 100, 1, "%"),
+        "DEXCLOSEDMM": fmt(dex.get("closed_gap_m", 0) * 1000, 1),
+        "DEXOPENMM": fmt(dex.get("open_gap_m", 0) * 1000, 1),
+        "DEXSYMMM": fmt(dex.get("left_right_max_gap_difference_m", 0) * 1000, 3),
+        "GRASPPASS": f"{sum(bool(x.get('held')) for x in grasp_trials)}/{len(grasp_trials)}",
+        "GRASPFORCE": fmt(min(
+            (value for value in grasp.get("maximum_tested_held_force_n", {}).values()
+             if value is not None), default=0.0
+        ), 1),
+        "LONGSECONDS": fmt(long_run.get("duration_s"), 0),
+        "PELVISMIN": fmt(long_run.get("pelvis_height_m", {}).get("min"), 3),
+        "CUBEDRIFT": fmt(long_run.get("cube_height_drift_m_max", 0) * 1000, 2),
+        "RANDPASS": str(sum(bool(x.get("stable")) for x in random_trials)),
+        "RANDTOTAL": str(len(random_trials)),
+        "FORCEPASS": fmt(disturbance.get("all_lower_forces_recovered_through_n"), 0),
+        "VISCOMMON": str(visual_summary.get("common_object_observations", "—")),
+        "VISCENTER": fmt(visual_summary.get("center_error_normalized" , {}).get("mean"), 3),
+        "VISAREA": fmt(visual_summary.get("area_ratio", {}).get("median"), 2),
+        "PADDED": str(checkpoint.get("architecture_evidence", {}).get("likely_internal_padded_action_dim", "—")),
         "CHECKROWS": render_checks(), "HISTORY": render_history(history), "GENERATED": generated,
     }
     # Replace longer tokens first (for example TESTTOTAL before TOTAL).

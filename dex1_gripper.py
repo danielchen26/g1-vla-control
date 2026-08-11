@@ -19,14 +19,23 @@ def motor_radians_to_jaw_position(command: float) -> float:
     """Map the real Dex1 motor convention to the URDF prismatic joint.
 
     Unitree's example drives the calibrated motor through approximately
-    0..5.5 rad. The URDF fingers move symmetrically over -0.020..0.0245 m.
+    0..5.5 rad. Synchronized dataset frame 0 shows ~5.38 rad while visibly
+    open. The URDF prismatic sign is opposite, so this mapping is reversed.
     """
     fraction = np.clip(
         (float(command) - MOTOR_MIN_RAD) / (MOTOR_MAX_RAD - MOTOR_MIN_RAD),
         0.0,
         1.0,
     )
-    return float(JAW_MIN_M + fraction * (JAW_MAX_M - JAW_MIN_M))
+    return float(JAW_MAX_M - fraction * (JAW_MAX_M - JAW_MIN_M))
+
+
+def jaw_position_to_motor_radians(position: float) -> float:
+    """Inverse of :func:`motor_radians_to_jaw_position`."""
+    fraction = np.clip(
+        (JAW_MAX_M - float(position)) / (JAW_MAX_M - JAW_MIN_M), 0.0, 1.0
+    )
+    return float(MOTOR_MIN_RAD + fraction * (MOTOR_MAX_RAD - MOTOR_MIN_RAD))
 
 
 def _remove_articulated_hands(spec: mujoco.MjSpec) -> None:
@@ -59,7 +68,10 @@ def _attach_one(spec: mujoco.MjSpec, side: str) -> None:
 
     # Dex1's finger direction is +Y in its URDF. Rotate it onto the G1 wrist's
     # forward +X axis and mount just beyond the wrist-yaw housing.
-    yaw = -math.pi / 2 if side == "left" else math.pi / 2
+    # The same non-handed parallel gripper is used on both wrists. In both
+    # cases child +Y must point along wrist +X; mirroring this yaw would make
+    # the right gripper point backward.
+    yaw = -math.pi / 2
     mount = wrist.add_frame(
         name=f"{side}_dex1_mount",
         pos=[0.065, 0.0, 0.0],
@@ -119,3 +131,6 @@ class Dex1Controller:
 
     def set_open(self, data: mujoco.MjData) -> None:
         self.set_motor_commands(data, MOTOR_MAX_RAD, MOTOR_MAX_RAD)
+
+    def set_closed(self, data: mujoco.MjData) -> None:
+        self.set_motor_commands(data, MOTOR_MIN_RAD, MOTOR_MIN_RAD)
