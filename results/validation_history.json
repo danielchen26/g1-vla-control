@@ -83,5 +83,10 @@
     "time": "2026-08-10 22:27 EDT",
     "title": "Validation run",
     "detail": "深度验证补充：1000 组宽域 OOD 双手目标仅 1.4% 同时成功，35.8% 关节饱和、83.0% 出现禁区接触；关节范围始终合规，但明确证明接入真实 VLA 前必须增加可达性/碰撞拒绝器。"
+  },
+  {
+    "time": "2026-08-10 22:30 EDT",
+    "title": "Validation run",
+    "detail": "GitHub Actions Ubuntu 22.04 headless-smoke 已通过：13 项测试、baseline/adaptive 动力学、三路 OSMesa 渲染、HTML 完整性检查和证据 artifact 全部成功。"
   }
 ]

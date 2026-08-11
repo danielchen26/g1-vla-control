@@ -1,5 +1,7 @@
 # Unitree G1 · Dex1 · VLA 仿真验证
 
+[![MuJoCo validation](https://github.com/danielchen26/g1-vla-control/actions/workflows/validation.yml/badge.svg)](https://github.com/danielchen26/g1-vla-control/actions/workflows/validation.yml)
+
 面向 Apple M4 Air 24 GB 的本地 MuJoCo 验证环境。真实 OpenPI VLA 计划在 Ubuntu NVIDIA 主机运行，本机负责场景、三路相机、动作契约、IK、Dex1 和评测。
 
 > 当前边界：仓库中的轨迹是确定性 Stub，并非真实 VLA 输出。真实 checkpoint 仍缺 OpenPI config 和 joint↔EEF transform。
