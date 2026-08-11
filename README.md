@@ -41,14 +41,16 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - XYZ 插值、Quaternion SLERP、G1 双臂 IK
 - 自动测试、JSON 证据、验证历史和现代化 HTML App
 - 可选 adaptive speed 模块；真实 VLA smoke test 可以完全绕过它
+- Gate-A sim-only EEF v/a/jerk safety filter 与 conservative target preflight
 
 ## 尚未完成
 
 - `LGG100/stack-cube-eef-24k` 的真实神经网络推理
 - 模型作者的 OpenPI training config、repack transform 和 EEF 坐标定义
 - 训练仿真器的精确相机内外参与视觉域
-- 真实 action chunk 的离线可视化与闭环执行
-- 批量抓取/堆叠成功率和随机化鲁棒性
+- 真实 VLA action chunk 的离线可视化与闭环执行
+- Joint-level acceleration/jerk limiter 与 phase-aware 碰撞规则
+- 真实 VLA 抓取/堆叠成功率
 - 真机 G1 EDU 测试
 
 ## 深度验证结果
@@ -65,6 +67,20 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - 躯干冲击连续通过至 20 N；40 N 倒地，60 N 漂移/倾斜超门槛
 - 视觉域量化显示仍有明显中心、尺度、背景、照明和夹爪外观差异
 - Orbax 参数签名强烈指向 `Pi0Config(pi05=True)` + LoRA，内部 action padding 32、发布动作维度 16；仍不能无 config 安全恢复
+
+## Gate-A 调速安全层
+
+使用公开训练目标 P99 作为 sim-only 初值：
+
+```text
+EEF speed       0.227 m/s
+EEF acceleration 2.760 m/s²
+EEF jerk        125.67 m/s³
+Angular speed   1.044 rad/s
+Gripper speed   5.793 rad/s
+```
+
+Episode 0 在 `0.50× / 0.75× / 1.00× / 1.25× / 1.50×` 五档回放中，filtered EEF command 均满足 hard limits，最终 endpoint 误差均小于 0.15 mm。保守 preflight 对 100 个 OOD 目标全部拒绝，但训练内只接受 31/68；实际关节 jerk 仍最高约 45k rad/s³。因此下一步是 joint-level limiter 和 phase-aware collision gate，而不是提高最大 scale。
 
 一键重跑所有本地可行验证：
 

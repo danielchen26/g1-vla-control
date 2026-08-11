@@ -1,0 +1,169 @@
+{
+  "scope": "Gate-A simulation-only validation using reconstructed EEF actions. No neural VLA checkpoint and no Unitree hardware limits are used.",
+  "motion_envelope": {
+    "max_eef_speed_m_s": 0.227,
+    "max_eef_acceleration_m_s2": 2.76,
+    "max_eef_jerk_m_s3": 125.67,
+    "max_angular_speed_rad_s": 1.044,
+    "max_gripper_speed_rad_s": 5.793,
+    "source": "public training-target P99; simulation-only"
+  },
+  "episode_zero_scale_sweep": [
+    {
+      "scale": 1.0,
+      "filter_enabled": false,
+      "nominal_path_duration_s": 22.566667556762695,
+      "simulated_duration_s": 24.568,
+      "hard_command_limits_pass": false,
+      "endpoint_error_m": 3.219063366914323e-05,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.6276457180071638,
+      "finite": true,
+      "maxima": {
+        "command_speed_m_s": 2.5618520110956045,
+        "command_acceleration_m_s2": 1283.6021915289507,
+        "command_jerk_m_s3": 1282262.8200828873,
+        "command_angular_speed_rad_s": 14.104753905443122,
+        "command_gripper_speed_rad_s": 9.511709213256836,
+        "actual_joint_speed_rad_s": 0.7303999473815677,
+        "actual_joint_acceleration_rad_s2": 110.50076355430208,
+        "actual_joint_jerk_rad_s3": 61633.46882797156,
+        "desired_to_filtered_position_lag_m": 0.0,
+        "actual_to_filtered_position_error_m": 0.03933893313305628
+      }
+    },
+    {
+      "scale": 0.5,
+      "filter_enabled": true,
+      "nominal_path_duration_s": 45.13333511352539,
+      "simulated_duration_s": 47.134,
+      "hard_command_limits_pass": true,
+      "endpoint_error_m": 8.080145130508357e-05,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.568931132515806,
+      "finite": true,
+      "maxima": {
+        "command_speed_m_s": 0.08460258131543852,
+        "command_acceleration_m_s2": 0.7562824765891226,
+        "command_jerk_m_s3": 125.67000000177023,
+        "command_angular_speed_rad_s": 1.0439999999344742,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "actual_joint_speed_rad_s": 0.4877579281083222,
+        "actual_joint_acceleration_rad_s2": 52.28986365044463,
+        "actual_joint_jerk_rad_s3": 26144.931825222313,
+        "desired_to_filtered_position_lag_m": 0.010711787893288846,
+        "actual_to_filtered_position_error_m": 0.02262404987183425
+      }
+    },
+    {
+      "scale": 0.75,
+      "filter_enabled": true,
+      "nominal_path_duration_s": 30.088890075683594,
+      "simulated_duration_s": 32.09,
+      "hard_command_limits_pass": true,
+      "endpoint_error_m": 0.00010305371386871366,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.5877843564973512,
+      "finite": true,
+      "maxima": {
+        "command_speed_m_s": 0.11958586080732592,
+        "command_acceleration_m_s2": 0.7550005261983591,
+        "command_jerk_m_s3": 125.67000000114264,
+        "command_angular_speed_rad_s": 1.0440000001471608,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "actual_joint_speed_rad_s": 0.719438239249766,
+        "actual_joint_acceleration_rad_s2": 52.28986365044463,
+        "actual_joint_jerk_rad_s3": 26144.931825222313,
+        "desired_to_filtered_position_lag_m": 0.015251724479293956,
+        "actual_to_filtered_position_error_m": 0.0350146126012879
+      }
+    },
+    {
+      "scale": 1.0,
+      "filter_enabled": true,
+      "nominal_path_duration_s": 22.566667556762695,
+      "simulated_duration_s": 24.568,
+      "hard_command_limits_pass": true,
+      "endpoint_error_m": 0.00012369107600255328,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.604200586128297,
+      "finite": true,
+      "maxima": {
+        "command_speed_m_s": 0.15048532580511492,
+        "command_acceleration_m_s2": 0.7676335270913142,
+        "command_jerk_m_s3": 125.67000000198772,
+        "command_angular_speed_rad_s": 1.0440000001471608,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "actual_joint_speed_rad_s": 0.851397644346342,
+        "actual_joint_acceleration_rad_s2": 83.60250633872042,
+        "actual_joint_jerk_rad_s3": 45049.927994122765,
+        "desired_to_filtered_position_lag_m": 0.019347624908799665,
+        "actual_to_filtered_position_error_m": 0.04244850980942704
+      }
+    },
+    {
+      "scale": 1.25,
+      "filter_enabled": true,
+      "nominal_path_duration_s": 18.053334045410157,
+      "simulated_duration_s": 20.054000000000002,
+      "hard_command_limits_pass": true,
+      "endpoint_error_m": 0.00012149600696038697,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.6202253914431036,
+      "finite": true,
+      "maxima": {
+        "command_speed_m_s": 0.17836792363595205,
+        "command_acceleration_m_s2": 1.0359473747980028,
+        "command_jerk_m_s3": 125.67000000089575,
+        "command_angular_speed_rad_s": 1.0440000000408174,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "actual_joint_speed_rad_s": 0.9865407480888277,
+        "actual_joint_acceleration_rad_s2": 52.28986365044463,
+        "actual_joint_jerk_rad_s3": 26144.931825222313,
+        "desired_to_filtered_position_lag_m": 0.02314930095436533,
+        "actual_to_filtered_position_error_m": 0.049206658250599326
+      }
+    },
+    {
+      "scale": 1.5,
+      "filter_enabled": true,
+      "nominal_path_duration_s": 15.044445037841797,
+      "simulated_duration_s": 17.046,
+      "hard_command_limits_pass": true,
+      "endpoint_error_m": 0.00014866278931934495,
+      "minimum_pelvis_height_m": 0.79,
+      "forbidden_contact_step_rate": 0.6321717705033439,
+      "finite": true,
+      "maxima": {
+        "command_speed_m_s": 0.19933529576234152,
+        "command_acceleration_m_s2": 1.258248101057629,
+        "command_jerk_m_s3": 125.67000000022199,
+        "command_angular_speed_rad_s": 1.0440000000408174,
+        "command_gripper_speed_rad_s": 5.793000000000159,
+        "actual_joint_speed_rad_s": 1.0484784687441204,
+        "actual_joint_acceleration_rad_s2": 52.28986365044463,
+        "actual_joint_jerk_rad_s3": 26144.931825222313,
+        "desired_to_filtered_position_lag_m": 0.026190072526369172,
+        "actual_to_filtered_position_error_m": 0.052767028094479945
+      }
+    }
+  ],
+  "preflight_gate": {
+    "in_distribution": {
+      "checked_targets": 68,
+      "reason_counts": {
+        "collision": 37,
+        "accepted": 31
+      },
+      "accepted_rate": 0.45588235294117646
+    },
+    "out_of_distribution": {
+      "checked_targets": 100,
+      "reason_counts": {
+        "unreachable": 100
+      },
+      "rejected_rate": 1.0
+    },
+    "rule": "Reject unreachable, joint-saturated, table/floor/torso/cross-arm contacts; allow Dex1-to-cube contact."
+  }
+}

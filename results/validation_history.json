@@ -98,5 +98,15 @@
     "time": "2026-08-11 00:44 EDT",
     "title": "Validation run",
     "detail": "新增独立“调速所需信息”Tab：区分已确认的 30 Hz/100 ms/训练运动包络、当前人为默认参数，以及进入真实 VLA/真机调速前必须取得的 P0/P1 信息与最小资料包。"
+  },
+  {
+    "time": "2026-08-11 10:01 EDT",
+    "title": "Validation run",
+    "detail": "完成 comprehensive deep validation：100 episodes/95,966 帧数据审计、episode-0 全轨迹回放、250 个真实数据 IK 目标、1000 组宽域工作空间压力测试、Dex1 指尖/抓持、5 档 Gate-A 安全调速、168 个 target preflight、30 秒动力学、20 组随机化、5 档外部扰动、三路视觉域对照及 Orbax metadata 审计。"
+  },
+  {
+    "time": "2026-08-11 10:01 EDT",
+    "title": "Validation run",
+    "detail": "15/15 项自动测试、baseline/adaptive 动力学和三路相机渲染全部通过。"
   }
 ]
