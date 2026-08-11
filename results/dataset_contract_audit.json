@@ -139,6 +139,45 @@
       0.4740213737294101
     ]
   },
+  "training_motion_envelope": {
+    "eef_translation_speed_m_s": {
+      "p50": 0.03665825972800599,
+      "p95": 0.15095734286059326,
+      "p99": 0.22683240007621577,
+      "max": 1.5587043832480634
+    },
+    "eef_angular_speed_rad_s": {
+      "p50": 0.15447108229145964,
+      "p95": 0.6392702276966055,
+      "p99": 1.0439625179711223,
+      "max": 7.780266851430129
+    },
+    "eef_translation_acceleration_m_s2": {
+      "p50": 0.255773709640854,
+      "p95": 1.217269464242504,
+      "p99": 2.759828673813951,
+      "max": 46.76112595022863
+    },
+    "eef_translation_jerk_m_s3": {
+      "p50": 9.765868565085214,
+      "p95": 53.29682415320701,
+      "p99": 125.66935597361163,
+      "max": 1768.6672273722174
+    },
+    "raw_joint_target_speed_rad_s": {
+      "p50": 0.1987740397453308,
+      "p95": 0.8630702644586563,
+      "p99": 1.450113952159885,
+      "max": 6.767372488975525
+    },
+    "gripper_target_speed_rad_s": {
+      "p50": 0.0,
+      "p95": 3.8794362545013428,
+      "p99": 5.792105555534363,
+      "max": 12.304322719573975
+    },
+    "warning": "Finite differences of recorded targets, not authoritative hardware limits. Maxima may include target discontinuities or noise."
+  },
   "reconstructed_training_transform": {
     "representation": "[left xyz, left xyzw, right xyz, right xyzw, left grip, right grip]",
     "frame": "pelvis",

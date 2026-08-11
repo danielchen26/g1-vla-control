@@ -128,6 +128,74 @@ def _best_action_state_lag(episodes: list[tuple[np.ndarray, np.ndarray]]) -> dic
             "normalized_rmse_by_lag_0_to_30": scores}
 
 
+def _motion_envelope(
+    raw_episodes: list[tuple[np.ndarray, np.ndarray]],
+    eef_actions: np.ndarray,
+) -> dict:
+    translation_speeds = []
+    angular_speeds = []
+    translation_accelerations = []
+    translation_jerks = []
+    joint_speeds = []
+    gripper_speeds = []
+    cursor = 0
+    for _, raw_action in raw_episodes:
+        count = len(raw_action)
+        action = eef_actions[cursor : cursor + count]
+        cursor += count
+        left_velocity = np.diff(action[:, 0:3], axis=0) * 30.0
+        right_velocity = np.diff(action[:, 7:10], axis=0) * 30.0
+        translation_speeds.extend(np.maximum(
+            np.linalg.norm(left_velocity, axis=1),
+            np.linalg.norm(right_velocity, axis=1),
+        ))
+        if len(left_velocity) > 1:
+            left_accel = np.diff(left_velocity, axis=0) * 30.0
+            right_accel = np.diff(right_velocity, axis=0) * 30.0
+            translation_accelerations.extend(np.maximum(
+                np.linalg.norm(left_accel, axis=1),
+                np.linalg.norm(right_accel, axis=1),
+            ))
+            if len(left_accel) > 1:
+                left_jerk = np.diff(left_accel, axis=0) * 30.0
+                right_jerk = np.diff(right_accel, axis=0) * 30.0
+                translation_jerks.extend(np.maximum(
+                    np.linalg.norm(left_jerk, axis=1),
+                    np.linalg.norm(right_jerk, axis=1),
+                ))
+        per_side_angular = []
+        for quaternion_slice in (slice(3, 7), slice(10, 14)):
+            q0 = action[:-1, quaternion_slice]
+            q1 = action[1:, quaternion_slice]
+            dot = np.clip(np.abs(np.sum(q0 * q1, axis=1)), 0.0, 1.0)
+            per_side_angular.append(2.0 * np.arccos(dot) * 30.0)
+        angular_speeds.extend(np.maximum(*per_side_angular))
+        joint_speeds.extend(np.max(np.abs(np.diff(raw_action[:, :14], axis=0) * 30.0), axis=1))
+        gripper_speeds.extend(np.max(np.abs(np.diff(raw_action[:, 14:], axis=0) * 30.0), axis=1))
+
+    def quantiles(values) -> dict:
+        values = np.asarray(values)
+        return {
+            "p50": float(np.quantile(values, 0.50)),
+            "p95": float(np.quantile(values, 0.95)),
+            "p99": float(np.quantile(values, 0.99)),
+            "max": float(np.max(values)),
+        }
+
+    return {
+        "eef_translation_speed_m_s": quantiles(translation_speeds),
+        "eef_angular_speed_rad_s": quantiles(angular_speeds),
+        "eef_translation_acceleration_m_s2": quantiles(translation_accelerations),
+        "eef_translation_jerk_m_s3": quantiles(translation_jerks),
+        "raw_joint_target_speed_rad_s": quantiles(joint_speeds),
+        "gripper_target_speed_rad_s": quantiles(gripper_speeds),
+        "warning": (
+            "Finite differences of recorded targets, not authoritative hardware limits. "
+            "Maxima may include target discontinuities or noise."
+        ),
+    }
+
+
 def _compare(actual: dict, expected: dict) -> dict:
     output = {}
     for key in ("mean", "std", "q01", "q99"):
@@ -206,6 +274,7 @@ def main() -> None:
             "interpretation": "absolute joint targets, not EEF and not deltas",
         },
         "action_state_timing": lag,
+        "training_motion_envelope": _motion_envelope(episodes, eef_action),
         "reconstructed_training_transform": {
             "representation": (
                 "[left xyz, left xyzw, right xyz, right xyzw, left grip, right grip]"

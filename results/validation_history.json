@@ -93,5 +93,10 @@
     "time": "2026-08-10 22:35 EDT",
     "title": "Validation run",
     "detail": "已在“深度验证”Tab 增加两个 GitHub Actions Run 的独立卡片与直达链接：31452479374 和 31452596513，二者均为 SUCCESS。"
+  },
+  {
+    "time": "2026-08-11 00:44 EDT",
+    "title": "Validation run",
+    "detail": "新增独立“调速所需信息”Tab：区分已确认的 30 Hz/100 ms/训练运动包络、当前人为默认参数，以及进入真实 VLA/真机调速前必须取得的 P0/P1 信息与最小资料包。"
   }
 ]
