@@ -43,9 +43,11 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - 可选 adaptive speed 模块；真实 VLA smoke test 可以完全绕过它
 - Gate-A sim-only EEF v/a/jerk safety filter
 - Gate-A.2 14-D 逐关节 command v/a/jerk filter 与 phase-aware target preflight
+- OpenPI π0.5-DROID output-only WebSocket smoke client、Mock evidence 与固定版本部署说明
 
 ## 尚未完成
 
+- π0.5-DROID 的 Ubuntu NVIDIA 真实 output-only inference（当前真实调用数为 0）
 - `LGG100/stack-cube-eef-24k` 的真实神经网络推理
 - 模型作者的 OpenPI training config、repack transform 和 EEF 坐标定义
 - 训练仿真器的精确相机内外参与视觉域
@@ -88,6 +90,31 @@ Episode 0 在 `0.50× / 0.75× / 1.00× / 1.25× / 1.50×` 五档回放中，EEF
 ### 为什么没加载 VLA 仍能做 Gate A/A.2
 
 公开 episode 的 joint action 经候选 FK 重建为 16-D EEF，作为 **recorded-policy proxy** 输入同一个下游链路。这能验证 schema、坐标转换、filter、IK、command limits 和拒绝逻辑，但不能验证真实 VLA 的 chunk timing、延迟、输出分布、视觉闭环或叠积木成功率。Gate B 会用带时间戳的真实 OpenPI chunk 替换该输入源并重跑全部测试。
+
+## 第一真实 VLA Smoke：π0.5-DROID
+
+已按官方 OpenPI revision `15a9616a00943ada6c20a0f158e3adb39df2ccac` 建立 output-only 客户端：
+
+```text
+config:     pi05_droid
+checkpoint: gs://openpi-assets/checkpoints/pi05_droid
+```
+
+本地 Mock 只验证 WebSocket 审计契约、rank-2/8-D action 检查、NaN fail-closed、timestamp、latency、stale 标记和 SHA-256。它明确记录：
+
+```text
+neural_vla_claimed: false
+g1_execution_enabled: false
+g1_action_compatible: false
+```
+
+Ubuntu NVIDIA endpoint 到位后运行：
+
+```bash
+python openpi_droid_smoke.py --host 127.0.0.1 --port 8000 --calls 30
+```
+
+真实证据将写入 `results/openpi_droid_smoke_real.json`。DROID 8-D action 仍然只记录，绝不通过补零或人工复制映射到 G1。完整步骤见 [`OPENPI_DROID_SMOKE.md`](OPENPI_DROID_SMOKE.md)。
 
 一键重跑所有本地可行验证：
 

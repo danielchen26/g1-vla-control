@@ -19,6 +19,10 @@ def main() -> None:
     python = sys.executable
     run(python, "dataset_contract_audit.py")
     run(python, "checkpoint_metadata_audit.py")
+    run(
+        python, "openpi_droid_smoke.py", "--mock", "--calls", "8",
+        "--output", "results/openpi_droid_smoke_mock.json",
+    )
     run(python, "render_camera_observations.py")
     run(python, "visual_fidelity_audit.py")
     run(python, "retiming_safety_validation.py")
@@ -31,7 +35,7 @@ def main() -> None:
         python, "generate_report.py", "--record",
         "完成 comprehensive deep validation：100 episodes/95,966 帧数据审计、"
         "episode-0 全轨迹回放、250 个真实数据 IK 目标、1000 组宽域工作空间压力测试、"
-        "Dex1 指尖/抓持、5 档 Gate-A.2 EEF/Joint 安全调速、168 个唯一 target 的 phase-aware preflight、"
+        "OpenPI π0.5-DROID client Mock（非神经推理）、Dex1 指尖/抓持、5 档 Gate-A.2 EEF/Joint 安全调速、168 个唯一 target 的 phase-aware preflight、"
         "30 秒动力学、20 组随机化、5 档外部扰动、三路视觉域对照及 Orbax metadata 审计。",
     )
     print(f"Deep-validation report: {ROOT / 'validation_report.html'}")

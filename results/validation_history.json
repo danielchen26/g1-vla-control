@@ -133,5 +133,20 @@
     "time": "2026-08-11 12:32 EDT",
     "title": "Validation run",
     "detail": "Gate-A.2 提交的 GitHub Actions Run 31512781222 已通过：Ubuntu headless 17/17 测试、动力学、三路渲染、HTML 检查与 artifact 全部成功。"
+  },
+  {
+    "time": "2026-08-11 16:52 EDT",
+    "title": "Validation run",
+    "detail": "20/20 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
+  },
+  {
+    "time": "2026-08-11 16:53 EDT",
+    "title": "Validation run",
+    "detail": "21/21 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
+  },
+  {
+    "time": "2026-08-11 16:56 EDT",
+    "title": "Validation run",
+    "detail": "完成 comprehensive deep validation：100 episodes/95,966 帧数据审计、episode-0 全轨迹回放、250 个真实数据 IK 目标、1000 组宽域工作空间压力测试、OpenPI π0.5-DROID client Mock（非神经推理）、Dex1 指尖/抓持、5 档 Gate-A.2 EEF/Joint 安全调速、168 个唯一 target 的 phase-aware preflight、30 秒动力学、20 组随机化、5 档外部扰动、三路视觉域对照及 Orbax metadata 审计。"
   }
 ]
