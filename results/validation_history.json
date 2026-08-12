@@ -183,5 +183,10 @@
     "time": "2026-08-12 12:26 EDT",
     "title": "Validation run",
     "detail": "24/24 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
+  },
+  {
+    "time": "2026-08-12 12:30 EDT",
+    "title": "Validation run",
+    "detail": "LGG100 real-VLA adaptive gate 的 GitHub Actions Run 31617720720 已通过：Ubuntu headless 24/24、LGG100 observation/fingerprint gates、动力学、三路 OSMesa、HTML 与 artifact 全部成功；跨平台功能 CI 更新为 8/8。真实神经调用仍为 0。"
   }
 ]
