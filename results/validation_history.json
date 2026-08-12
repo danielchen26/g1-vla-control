@@ -135,36 +135,6 @@
     "detail": "Gate-A.2 提交的 GitHub Actions Run 31512781222 已通过：Ubuntu headless 17/17 测试、动力学、三路渲染、HTML 检查与 artifact 全部成功。"
   },
   {
-    "time": "2026-08-11 16:52 EDT",
-    "title": "Validation run",
-    "detail": "20/20 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
-  },
-  {
-    "time": "2026-08-11 16:53 EDT",
-    "title": "Validation run",
-    "detail": "21/21 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
-  },
-  {
-    "time": "2026-08-11 16:56 EDT",
-    "title": "Validation run",
-    "detail": "完成 comprehensive deep validation：100 episodes/95,966 帧数据审计、episode-0 全轨迹回放、250 个真实数据 IK 目标、1000 组宽域工作空间压力测试、OpenPI π0.5-DROID client Mock（非神经推理）、Dex1 指尖/抓持、5 档 Gate-A.2 EEF/Joint 安全调速、168 个唯一 target 的 phase-aware preflight、30 秒动力学、20 组随机化、5 档外部扰动、三路视觉域对照及 Orbax metadata 审计。"
-  },
-  {
-    "time": "2026-08-11 16:58 EDT",
-    "title": "Validation run",
-    "detail": "π0.5-DROID output-only client 提交的 GitHub Actions Run 31535461865 已通过：Ubuntu headless 21/21、Mock evidence、动力学、三路渲染、HTML 与 artifact 全部成功；真实神经调用仍为 0。"
-  },
-  {
-    "time": "2026-08-12 11:09 EDT",
-    "title": "Validation run",
-    "detail": "将报告重构为执行摘要：按系统层列出已完成项，新增 M4 SmolVLA 本地过渡路线、Whisper 语音入口、π0.5 Base G1 LoRA 最终路线、双路线推进图、P0–P5 交付物与验收门槛；真实神经 VLA 调用仍为 0。"
-  },
-  {
-    "time": "2026-08-12 11:12 EDT",
-    "title": "Validation run",
-    "detail": "结构化本地 VLA 路线图的 GitHub Actions Run 31610777954 已通过：Ubuntu headless 21/21、动力学、三路渲染、HTML 检查与 artifact 均成功；跨平台功能 CI 更新为 6/6。"
-  },
-  {
     "time": "2026-08-12 12:09 EDT",
     "title": "Validation run",
     "detail": "新增独立 G1 最终部署 Tab：唯一生产目标确定为 OpenPI π0.5 Base + 自有 G1/Dex1 16-D 双臂 EEF LoRA；记录语音职责边界、Policy Contract、D0–D7 Gate workflow、GPU/机载拓扑、任务范围与真机分阶段门槛。"
@@ -175,18 +145,8 @@
     "detail": "G1 最终部署 Workflow 的 GitHub Actions Run 31616180656 已通过：Ubuntu headless 21/21、动力学、三路渲染、HTML 检查与 artifact 全部成功；跨平台功能 CI 更新为 7/7。"
   },
   {
-    "time": "2026-08-12 12:26 EDT",
-    "title": "Validation run",
-    "detail": "新增 LGG100 真实权重验证链：固定 HF revision cced7a…、严格 candidate parameter-tree restore、MuJoCo 三路真实 observation output-only smoke、fingerprint/preflight 和同一神经 chunk 的 baseline/adaptive 配对仿真；24/24 本地测试通过。尚无合格 Ubuntu NVIDIA host，真实神经调用仍为 0。"
-  },
-  {
-    "time": "2026-08-12 12:26 EDT",
-    "title": "Validation run",
-    "detail": "24/24 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
-  },
-  {
-    "time": "2026-08-12 12:30 EDT",
-    "title": "Validation run",
-    "detail": "LGG100 real-VLA adaptive gate 的 GitHub Actions Run 31617720720 已通过：Ubuntu headless 24/24、LGG100 observation/fingerprint gates、动力学、三路 OSMesa、HTML 与 artifact 全部成功；跨平台功能 CI 更新为 8/8。真实神经调用仍为 0。"
+    "time": "2026-08-12 13:02 EDT",
+    "title": "G1 EDU validation run",
+    "detail": "24/24 项自动测试、G1 EDU contract baseline/adaptive 全链路和三路相机渲染全部通过。"
   }
 ]

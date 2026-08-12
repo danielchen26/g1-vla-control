@@ -20,6 +20,8 @@ from typing import Any
 
 import numpy as np
 
+from g1_policy_contract import contract_metadata, validate_observation
+
 HF_REPO = "LGG100/stack-cube-eef-24k"
 HF_REVISION = "cced7a7ff7b454fdcac555457a1a2a3dc262ac77"
 ASSET_ID = "stack-cube-eef"
@@ -53,6 +55,7 @@ class G1CandidateInputs:
     """Candidate inference mapping reconstructed from public metadata."""
 
     def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
+        validate_observation(data)
         state = np.asarray(data["observation/state"], dtype=np.float32)
         if state.shape != (16,) or not np.all(np.isfinite(state)):
             raise ValueError(f"observation/state must be finite [16], got {state.shape}")
@@ -170,10 +173,12 @@ def build_policy(checkpoint_dir: Path, action_horizon: int, default_prompt: str)
             *data_config.repack_transforms.outputs,
         ],
         metadata={
+            **contract_metadata(verified=False),
             "evidence_mode": "lgg100_candidate_config_strict_restore",
             "neural_checkpoint_loaded": True,
             "strict_parameter_tree_restore": True,
             "author_config_available": False,
+            "g1_action_compatible": False,
             "safe_for_g1_hardware": False,
             "hf_repo": HF_REPO,
             "hf_revision": HF_REVISION,

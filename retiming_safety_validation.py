@@ -17,8 +17,7 @@ from dex1_gripper import Dex1Controller
 from g1_dual_arm_ik import G1DualArmIK, orientation_error
 from safety_governor import (
     G1TargetPreflight, JerkLimitedActionFilter, JerkLimitedJointFilter,
-    JointMotionEnvelope, MotionEnvelope, forbidden_manipulator_contact,
-    manipulator_contact_violations,
+    JointMotionEnvelope, MotionEnvelope, manipulator_contact_violations,
 )
 from stack_scene import build_model, reset_to_reference_pose, reset_to_stand
 
@@ -120,6 +119,8 @@ def _run_scale(
     }
     contact_steps_free_space = 0
     contact_steps_manipulation = 0
+    free_space_contact_reasons: Counter = Counter()
+    manipulation_contact_reasons: Counter = Counter()
     minimum_pelvis = float(data.xpos[pelvis, 2])
     step_count = int(np.ceil(total_duration / dt))
     command = initial.copy()
@@ -258,12 +259,16 @@ def _run_scale(
         maxima["actual_joint_jerk_rad_s3"] = max(
             maxima["actual_joint_jerk_rad_s3"], actual_jerk_peak
         )
-        contact_steps_free_space += int(
-            forbidden_manipulator_contact(model, data, "free_space")
+        free_space_violations = manipulator_contact_violations(
+            model, data, "free_space"
         )
-        contact_steps_manipulation += int(
-            forbidden_manipulator_contact(model, data, "grasp")
+        manipulation_violations = manipulator_contact_violations(
+            model, data, "grasp"
         )
+        contact_steps_free_space += int(bool(free_space_violations))
+        contact_steps_manipulation += int(bool(manipulation_violations))
+        free_space_contact_reasons.update(free_space_violations)
+        manipulation_contact_reasons.update(manipulation_violations)
         minimum_pelvis = min(minimum_pelvis, float(data.xpos[pelvis, 2]))
         previous_command = command.copy()
         previous_velocity = velocity
@@ -308,6 +313,8 @@ def _run_scale(
         "forbidden_contact_step_rate": contact_steps_manipulation / step_count,
         "free_space_contact_step_rate": contact_steps_free_space / step_count,
         "manipulation_contact_step_rate": contact_steps_manipulation / step_count,
+        "free_space_contact_reason_counts": dict(free_space_contact_reasons),
+        "manipulation_contact_reason_counts": dict(manipulation_contact_reasons),
         "finite": bool(np.all(np.isfinite(data.qpos)) and np.all(np.isfinite(data.qvel))),
         "worst_actual_joint_jerk_event": worst_actual_jerk_event,
         "maxima": maxima,

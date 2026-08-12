@@ -12,7 +12,7 @@ from action_schema import (
     pelvis_vla_action_to_world_mujoco,
 )
 from adaptive_retimer import AdaptiveChunkExecutor, AdaptiveRetimer
-from vla_stub import make_reach_chunk
+from g1_contract_trajectory import make_reach_chunk
 
 
 class ActionSchemaTests(unittest.TestCase):
@@ -58,6 +58,7 @@ class RetimerTests(unittest.TestCase):
         self.chunk = make_reach_chunk(
             self.left_start, quaternion, self.right_start, quaternion,
             self.left_target, self.right_target,
+            gripper_state_rad=np.array([5.5, 5.5]),
         )
 
     def test_offline_retiming_preserves_path_and_quaternions(self):

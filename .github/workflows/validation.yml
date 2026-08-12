@@ -1,4 +1,4 @@
-name: MuJoCo validation
+name: G1 EDU sim-to-real validation
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
       - name: Unit and scene tests
         run: python -m unittest discover -s tests -v
 
-      - name: Deterministic dynamics smoke tests
+      - name: G1 EDU production-contract dynamics
         run: |
           python run_simulation.py --baseline --output results/baseline.json
           python run_simulation.py --output results/adaptive.json
@@ -39,9 +39,19 @@ jobs:
       - name: Three-camera render smoke test
         run: python render_camera_observations.py
 
-      - name: Verify generated report
+      - name: Verify frozen G1 contract and report
         run: |
+          python - <<'PY'
+          import json
+          for path in ('results/baseline.json', 'results/adaptive.json'):
+              result = json.load(open(path))
+              assert result['g1_policy_contract_id'] == 'g1_edu_dual_dex1_eef_v1'
+              assert result['g1_contract_verified'] is True
+              assert result['g1_hardware_execution_enabled'] is False
+              assert result['success'] is True
+          PY
           python generate_report.py
+          grep -q 'g1_edu_dual_dex1_eef_v1' validation_report.html
           ! grep -Eq 'CHECKROWS|TESTPASS|TESTTOTAL|PROGRESS%' validation_report.html
 
       - uses: actions/upload-artifact@v4

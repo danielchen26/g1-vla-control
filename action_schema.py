@@ -1,10 +1,9 @@
-"""VLA-compatible dual end-effector action representation.
+"""Frozen G1 EDU dual-Dex1 policy action representation.
 
-The checkpoint LGG100/stack-cube-eef-24k publishes 16 normalized values:
-left xyz + quaternion, right xyz + quaternion, and two gripper values.
-A 95,966-frame audit strongly supports pelvis-frame positions, a 50 mm wrist
-EEF offset, and xyzw quaternions. The author's exact transform remains missing.
-Conversion to world coordinates and MuJoCo wxyz happens at the simulator boundary.
+The project contract defines 16 absolute targets: left pelvis-frame EEF pose,
+right pelvis-frame EEF pose, then two Dex1 motor values.  Quaternions are xyzw.
+Conversion to world coordinates and MuJoCo wxyz happens only at the simulator
+boundary; the future G1 adapter must implement the same contract.
 """
 
 from __future__ import annotations

@@ -1,6 +1,8 @@
-"""Deterministic VLA stand-in that emits the real 16-D EEF interface.
+"""Deterministic trajectory fixture in the frozen G1 EDU policy contract.
 
-Only this module needs to be replaced when a remote OpenPI server is available.
+This is not a VLA and is never presented as task-performance evidence.  It
+exists only to regression-test the exact 16-D pelvis-frame path that a trained
+G1 policy will later provide to the shared safety/IK/controller pipeline.
 """
 
 from __future__ import annotations
@@ -8,6 +10,9 @@ from __future__ import annotations
 import numpy as np
 
 from action_schema import EEFActionChunk, LEFT_POS, LEFT_QUAT, RIGHT_POS, RIGHT_QUAT
+from g1_policy_contract import (
+    ACTION_DIM, ACTION_HORIZON, POLICY_RATE_HZ, validate_action_chunk,
+)
 
 
 def minimum_jerk(progress: np.ndarray) -> np.ndarray:
@@ -22,13 +27,15 @@ def make_reach_chunk(
     left_target: np.ndarray,
     right_target: np.ndarray,
     *,
-    duration: float = 4.0,
-    frequency: float = 30.0,
+    gripper_state_rad: np.ndarray,
+    frequency: float = POLICY_RATE_HZ,
 ) -> EEFActionChunk:
-    count = int(duration * frequency) + 1
-    timestamps = np.linspace(0.0, duration, count)
+    """Build one exact-horizon pelvis-frame fixture with no gripper transition."""
+    count = ACTION_HORIZON
+    timestamps = np.arange(count, dtype=np.float64) / frequency
+    duration = float(timestamps[-1])
     blend = minimum_jerk(timestamps / duration)
-    actions = np.zeros((count, 16), dtype=np.float64)
+    actions = np.zeros((count, ACTION_DIM), dtype=np.float64)
     actions[:, LEFT_POS] = (
         left_start_position[None, :] * (1.0 - blend[:, None])
         + left_target[None, :] * blend[:, None]
@@ -39,7 +46,10 @@ def make_reach_chunk(
     )
     actions[:, LEFT_QUAT] = left_start_quaternion
     actions[:, RIGHT_QUAT] = right_start_quaternion
-    # Synchronized dataset evidence: ~5.4 rad corresponds to visibly open.
-    actions[:, 14] = 5.5
-    actions[:, 15] = 5.5
+    actions[:, 14:16] = np.asarray(gripper_state_rad, dtype=np.float64)
+    validate_action_chunk(
+        actions, timestamps,
+        expected_horizon=ACTION_HORIZON,
+        expected_rate_hz=POLICY_RATE_HZ,
+    )
     return EEFActionChunk(timestamps, actions)

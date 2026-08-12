@@ -111,23 +111,38 @@ class Dex1Controller:
     def __init__(self, model: mujoco.MjModel):
         self.model = model
         self.actuators: dict[str, np.ndarray] = {}
+        self.qpos: dict[str, np.ndarray] = {}
         for side in ("left", "right"):
-            ids = []
+            actuator_ids = []
+            qpos_ids = []
             for finger in ("Joint1_1", "Joint2_1"):
-                name = f"{side}_dex1_{finger}_actuator"
+                joint_name = f"{side}_dex1_{finger}"
+                actuator_name = f"{joint_name}_actuator"
                 actuator_id = mujoco.mj_name2id(
-                    model, mujoco.mjtObj.mjOBJ_ACTUATOR, name
+                    model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name
                 )
-                if actuator_id < 0:
-                    raise RuntimeError(f"Missing Dex1 actuator: {name}")
-                ids.append(actuator_id)
-            self.actuators[side] = np.asarray(ids, dtype=int)
+                joint_id = mujoco.mj_name2id(
+                    model, mujoco.mjtObj.mjOBJ_JOINT, joint_name
+                )
+                if actuator_id < 0 or joint_id < 0:
+                    raise RuntimeError(f"Missing Dex1 actuator/joint: {joint_name}")
+                actuator_ids.append(actuator_id)
+                qpos_ids.append(model.jnt_qposadr[joint_id])
+            self.actuators[side] = np.asarray(actuator_ids, dtype=int)
+            self.qpos[side] = np.asarray(qpos_ids, dtype=int)
 
     def set_motor_commands(
         self, data: mujoco.MjData, left_command: float, right_command: float
     ) -> None:
         data.ctrl[self.actuators["left"]] = motor_radians_to_jaw_position(left_command)
         data.ctrl[self.actuators["right"]] = motor_radians_to_jaw_position(right_command)
+
+    def motor_states(self, data: mujoco.MjData) -> np.ndarray:
+        """Return measured left/right motor-equivalent state from jaw qpos."""
+        return np.asarray([
+            jaw_position_to_motor_radians(float(np.mean(data.qpos[self.qpos[side]])))
+            for side in ("left", "right")
+        ])
 
     def set_open(self, data: mujoco.MjData) -> None:
         self.set_motor_commands(data, MOTOR_MAX_RAD, MOTOR_MAX_RAD)

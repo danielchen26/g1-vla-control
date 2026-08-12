@@ -1,19 +1,79 @@
 {
+  "g1_policy_contract_id": "g1_edu_dual_dex1_eef_v1",
+  "g1_policy_contract_version": "1.0.0",
+  "g1_policy_contract_sha256": "e73f9e69c280a7bb4ba77ba8eed1b50a1f2d7cc9bddd68aee97e3e01162a3809",
+  "g1_contract_verified": true,
   "mode": "baseline",
+  "trajectory_source": "deterministic_g1_contract_fixture_not_vla",
+  "action_frame": "pelvis",
+  "action_semantics": "absolute_16d_eef_target",
+  "g1_hardware_execution_enabled": false,
+  "production_path_components": [
+    "g1_policy_contract_validation",
+    "phase_aware_preflight",
+    "EEF_command_filter",
+    "pelvis_to_world_boundary",
+    "G1_dual_arm_IK",
+    "14_joint_command_filter",
+    "Dex1_command_mapping"
+  ],
+  "preflight": {
+    "phase": "grasp",
+    "checked": 50,
+    "accepted": 50,
+    "all_accepted": true,
+    "reason_counts": {
+      "accepted": 50
+    }
+  },
+  "retiming": null,
+  "dynamics": {
+    "scale": 1.0,
+    "filter_enabled": true,
+    "joint_filter_enabled": true,
+    "nominal_path_duration_s": 1.6333333333333333,
+    "simulated_duration_s": 3.634,
+    "hard_command_limits_pass": true,
+    "eef_hard_limits_pass": true,
+    "joint_hard_limits_pass": true,
+    "endpoint_error_m": 0.002193644514897954,
+    "minimum_pelvis_height_m": 0.79,
+    "forbidden_contact_step_rate": 0.0,
+    "free_space_contact_step_rate": 0.08475509080902587,
+    "manipulation_contact_step_rate": 0.0,
+    "free_space_contact_reason_counts": {
+      "dex_cube_outside_manipulation_phase": 154
+    },
+    "manipulation_contact_reason_counts": {},
+    "finite": true,
+    "worst_actual_joint_jerk_event": {
+      "time_s": 0.0,
+      "joint": "right_shoulder_roll_joint",
+      "jerk_rad_s3": 14984.859733529343,
+      "acceleration_rad_s2": -52.29127156348364,
+      "velocity_rad_s": -0.10458254312696728,
+      "free_space_contact_reasons": [],
+      "manipulation_contact_reasons": []
+    },
+    "maxima": {
+      "command_speed_m_s": 0.11351967706444747,
+      "command_acceleration_m_s2": 0.41075509268984406,
+      "command_jerk_m_s3": 3.9533422544524686,
+      "command_angular_speed_rad_s": 0.12128191865664514,
+      "command_gripper_speed_rad_s": 2.015380751174689e-06,
+      "joint_command_speed_rad_s": 0.6000628500592766,
+      "joint_command_acceleration_rad_s2": 1.3584857124493421,
+      "joint_command_jerk_rad_s3": 7.895564811330469,
+      "joint_command_speed_limit_ratio": 0.8234952201922887,
+      "joint_command_acceleration_limit_ratio": 0.23808270246446211,
+      "joint_command_jerk_limit_ratio": 0.05878240188179026,
+      "actual_joint_speed_rad_s": 0.600614406904773,
+      "actual_joint_acceleration_rad_s2": 52.29127156348364,
+      "actual_joint_jerk_rad_s3": 14984.859733529343,
+      "desired_to_filtered_position_lag_m": 0.014169405565773804,
+      "actual_to_filtered_position_error_m": 0.031941020879831736
+    }
+  },
   "success": true,
-  "duration": 4.001999999999781,
-  "scale_start": 1.0,
-  "scale_max": 1.0,
-  "scale_end": 1.0,
-  "left_final_error_m": 0.005944315083150394,
-  "right_final_error_m": 0.005772098733232827,
-  "pelvis_height_m": 0.7914751545931418,
-  "stability_score": 0.9061908070363649,
-  "max_joint_speed_rad_s": 0.5063513158537688,
-  "max_joint_acceleration_rad_s2": 77.44049793473178,
-  "max_joint_jerk_rad_s3": 43264.393265082515,
-  "left_position_error": 0.005963700930121601,
-  "left_orientation_error": 0.007334616877311638,
-  "right_position_error": 0.005794477543638848,
-  "right_orientation_error": 0.007301833227971921
+  "verdict": "Frozen G1 EDU contract pipeline passed in MuJoCo. This proves integration only, not VLA task success or hardware safety."
 }

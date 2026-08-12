@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Output-only LGG100 smoke using real MuJoCo G1 images and EEF state.
+"""Output-only LGG100 audit using the frozen G1 EDU observation contract.
 
-No returned action is executed.  A passing report proves that the strict
-candidate server loaded the real neural checkpoint and returned finite 16-D
-chunks for the simulated observation.  It does not confirm the unpublished
-author transforms or task success.
+A real neural restore may pass while G1 simulation eligibility remains false.
+No action is executed here; shape alone never establishes G1 compatibility.
 """
 
 from __future__ import annotations
@@ -12,19 +10,22 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from pathlib import Path
 import signal
 import socket
-from pathlib import Path
 import time
 from typing import Any
 
-import mujoco
 import numpy as np
 
-from action_schema import mujoco_wxyz_to_vla_xyzw, normalize_quaternion
-from stack_scene import (
-    CAMERA_NAMES, REFERENCE_EP0_STATE, TASK_PROMPT, build_model,
-    reset_to_reference_pose,
+from g1_mujoco_bridge import build_sim_observation
+from g1_policy_contract import (
+    ACTION_HORIZON,
+    CONTRACT_ID,
+    CONTRACT_SHA256,
+    POLICY_RATE_HZ,
+    contract_metadata,
+    validate_action_chunk,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -32,85 +33,6 @@ RESULTS = ROOT / "results"
 HF_REPO = "LGG100/stack-cube-eef-24k"
 HF_REVISION = "cced7a7ff7b454fdcac555457a1a2a3dc262ac77"
 EXPECTED_ACTION_DIM = 16
-
-
-def _quat_conjugate_wxyz(q: np.ndarray) -> np.ndarray:
-    q = normalize_quaternion(q)
-    return np.array([q[0], -q[1], -q[2], -q[3]])
-
-
-def _quat_multiply_wxyz(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-    aw, ax, ay, az = normalize_quaternion(a)
-    bw, bx, by, bz = normalize_quaternion(b)
-    return normalize_quaternion(np.array([
-        aw * bw - ax * bx - ay * by - az * bz,
-        aw * bx + ax * bw + ay * bz - az * by,
-        aw * by - ax * bz + ay * bw + az * bx,
-        aw * bz + ax * by - ay * bx + az * bw,
-    ]))
-
-
-def build_sim_observation() -> tuple[dict[str, Any], dict[str, Any]]:
-    """Render all three cameras and reconstruct current pelvis-frame EEF state."""
-    model = build_model()
-    data = mujoco.MjData(model)
-    reset_to_reference_pose(model, data)
-    hold = data.ctrl.copy()
-    for _ in range(250):
-        data.ctrl[:] = hold
-        mujoco.mj_step(model, data)
-
-    renderer = mujoco.Renderer(model, height=224, width=224)
-    images: dict[str, np.ndarray] = {}
-    try:
-        for camera in CAMERA_NAMES:
-            renderer.update_scene(data, camera=camera)
-            images[camera] = renderer.render().copy()
-    finally:
-        renderer.close()
-
-    pelvis_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
-    pelvis_pos = data.xpos[pelvis_id].copy()
-    pelvis_rot = data.xmat[pelvis_id].reshape(3, 3).copy()
-    pelvis_quat = np.empty(4)
-    mujoco.mju_mat2Quat(pelvis_quat, pelvis_rot.ravel())
-    pelvis_inv = _quat_conjugate_wxyz(pelvis_quat)
-
-    state = np.empty(16, dtype=np.float32)
-    cursor = 0
-    for side in ("left", "right"):
-        site_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, f"{side}_eef")
-        world_quat = np.empty(4)
-        mujoco.mju_mat2Quat(world_quat, data.site_xmat[site_id])
-        relative_quat = _quat_multiply_wxyz(pelvis_inv, world_quat)
-        state[cursor : cursor + 3] = pelvis_rot.T @ (data.site_xpos[site_id] - pelvis_pos)
-        state[cursor + 3 : cursor + 7] = mujoco_wxyz_to_vla_xyzw(relative_quat)
-        cursor += 7
-    # The synchronized episode-0 motor values are the command/state contract used
-    # to initialize this scene; jaw qpos uses a separate prismatic representation.
-    state[14:] = REFERENCE_EP0_STATE[14:]
-
-    observation = {
-        "observation/cam_left_high": images["cam_left_high"],
-        "observation/cam_left_wrist": images["cam_left_wrist"],
-        "observation/cam_right_wrist": images["cam_right_wrist"],
-        "observation/state": state,
-        "prompt": TASK_PROMPT,
-    }
-    evidence = {
-        "state": state.tolist(),
-        "state_shape": list(state.shape),
-        "state_finite": bool(np.all(np.isfinite(state))),
-        "image_shape": list(images["cam_left_high"].shape),
-        "image_dtype": str(images["cam_left_high"].dtype),
-        "image_sha256": {
-            name: hashlib.sha256(image.tobytes()).hexdigest()
-            for name, image in images.items()
-        },
-        "pelvis_position_world_m": pelvis_pos.tolist(),
-        "pelvis_quaternion_world_wxyz": pelvis_quat.tolist(),
-    }
-    return observation, evidence
 
 
 def _infer_with_timeout(client, observation: dict[str, Any], timeout_ms: float):
@@ -153,13 +75,16 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=RESULTS / "lgg100_vla_smoke_real.json")
     parser.add_argument("--chunk-output", type=Path, default=RESULTS / "lgg100_action_chunk_real.npz")
     args = parser.parse_args()
-    if args.calls < 1 or args.warmup_calls < 0 or args.action_rate_hz <= 0:
-        raise SystemExit("calls/rate must be positive and warmup-calls non-negative")
+    if args.calls < 1 or args.warmup_calls < 0:
+        raise SystemExit("calls must be positive and warmup-calls non-negative")
+    if not np.isclose(args.action_rate_hz, POLICY_RATE_HZ):
+        raise SystemExit(f"G1 contract requires action rate {POLICY_RATE_HZ:g} Hz")
 
     try:
         from openpi_client import websocket_client_policy
     except ImportError as exc:
         raise SystemExit("Install pinned openpi-client; see LGG100_REAL_VLA.md") from exc
+
     with socket.create_connection((args.host, args.port), timeout=args.connect_timeout_s):
         pass
     client = websocket_client_policy.WebsocketClientPolicy(host=args.host, port=args.port)
@@ -180,10 +105,10 @@ def main() -> None:
             warmup_errors.append(f"{type(exc).__name__}: {exc}")
             break
 
-    records = []
+    records: list[dict[str, Any]] = []
     chunks: list[np.ndarray] = []
     shapes: set[tuple[int, ...]] = set()
-    latencies = []
+    latencies: list[float] = []
     for index in range(args.calls):
         start = time.monotonic_ns()
         try:
@@ -195,8 +120,15 @@ def main() -> None:
             shape = tuple(int(x) for x in actions.shape)
             shapes.add(shape)
             latencies.append(latency_ms)
+            contract_valid = False
+            contract_error = None
             if finite and shape_ok:
                 chunks.append(actions.copy())
+                try:
+                    validate_action_chunk(actions, expected_horizon=ACTION_HORIZON)
+                    contract_valid = True
+                except ValueError as exc:
+                    contract_error = str(exc)
             left_norm = np.linalg.norm(actions[:, 3:7], axis=1) if shape_ok else np.array([])
             right_norm = np.linalg.norm(actions[:, 10:14], axis=1) if shape_ok else np.array([])
             records.append({
@@ -205,6 +137,8 @@ def main() -> None:
                 "action_shape": list(shape),
                 "finite": finite,
                 "valid_16d_chunk": shape_ok,
+                "g1_action_contract_valid": contract_valid,
+                "g1_action_contract_error": contract_error,
                 "action_min": float(actions.min()) if actions.size else None,
                 "action_max": float(actions.max()) if actions.size else None,
                 "left_quaternion_norm_range": [float(left_norm.min()), float(left_norm.max())] if left_norm.size else None,
@@ -222,6 +156,8 @@ def main() -> None:
                 "action_shape": [],
                 "finite": False,
                 "valid_16d_chunk": False,
+                "g1_action_contract_valid": False,
+                "g1_action_contract_error": None,
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
@@ -229,39 +165,58 @@ def main() -> None:
         bool(record["finite"] and record["valid_16d_chunk"] and record["error"] is None)
         for record in records
     )
-    passed = bool(
-        strict_neural_restore and not warmup_errors and valid_calls == args.calls
+    neural_output_passed = bool(
+        strict_neural_restore
+        and not warmup_errors
+        and valid_calls == args.calls
         and len(shapes) == 1
     )
+    expected_contract = contract_metadata(verified=True)
+    g1_contract_verified = all(
+        metadata.get(key) == value for key, value in expected_contract.items()
+    )
+    g1_sim_eligible = bool(
+        neural_output_passed
+        and g1_contract_verified
+        and all(record.get("g1_action_contract_valid") for record in records)
+    )
     latency_array = np.asarray(latencies, dtype=np.float64)
+    latency_summary = {
+        "p50": float(np.quantile(latency_array, 0.50)),
+        "p95": float(np.quantile(latency_array, 0.95)),
+        "p99": float(np.quantile(latency_array, 0.99)),
+        "max": float(latency_array.max()),
+    } if len(latency_array) else {}
     report = {
-        "scope": "Real LGG100 neural output-only inference from MuJoCo observation; no action execution.",
+        "scope": "Real LGG100 neural output-only audit using the frozen G1 observation contract.",
         "evidence_mode": "lgg100_real_weights_candidate_semantics",
         "neural_vla_claimed": strict_neural_restore,
         "author_config_claimed": False,
+        "g1_policy_contract_id": CONTRACT_ID,
+        "g1_policy_contract_sha256": CONTRACT_SHA256,
+        "g1_contract_verified": g1_contract_verified,
+        "g1_sim_eligible": g1_sim_eligible,
         "g1_execution_enabled": False,
         "adaptive_retimer_enabled": False,
         "checkpoint": {"repo": HF_REPO, "revision": HF_REVISION},
         "server_metadata": metadata,
         "observation": observation_evidence,
         "summary": {
-            "passed": passed,
+            "passed": neural_output_passed,
+            "neural_output_passed": neural_output_passed,
+            "g1_sim_eligible": g1_sim_eligible,
             "calls": args.calls,
             "valid_calls": valid_calls,
             "warmup_errors": warmup_errors,
             "unique_action_shapes": [list(shape) for shape in sorted(shapes)],
-            "latency_ms": {
-                "p50": float(np.quantile(latency_array, 0.50)),
-                "p95": float(np.quantile(latency_array, 0.95)),
-                "p99": float(np.quantile(latency_array, 0.99)),
-                "max": float(latency_array.max()),
-            },
+            "latency_ms": latency_summary,
         },
         "calls": records,
         "verdict": (
-            "Real weights loaded under a strict candidate architecture and returned finite 16-D chunks. "
-            "Author semantics remain unconfirmed; proceed only to offline/preflight gates."
-            if passed else
+            "Neural output passed, but semantics are not verified against the frozen G1 EDU contract. Keep output-only; simulation and hardware remain blocked."
+            if neural_output_passed and not g1_sim_eligible else
+            "Neural output and frozen G1 contract both passed; the artifact may proceed to G1 preflight, never directly to hardware."
+            if g1_sim_eligible else
             "Restore/inference gate failed. Do not execute the chunk in simulation or hardware."
         ),
     }
@@ -270,7 +225,7 @@ def main() -> None:
     print(args.output)
     print(json.dumps(report["summary"], indent=2))
 
-    if passed:
+    if neural_output_passed:
         selected = chunks[0]
         timestamps = np.arange(len(selected), dtype=np.float64) / args.action_rate_hz
         args.chunk_output.parent.mkdir(parents=True, exist_ok=True)
@@ -281,6 +236,9 @@ def main() -> None:
             observation_state=np.asarray(observation["observation/state"]),
             action_sha256=np.asarray(hashlib.sha256(selected.tobytes()).hexdigest()),
             hf_revision=np.asarray(HF_REVISION),
+            g1_policy_contract_id=np.asarray(CONTRACT_ID),
+            g1_policy_contract_sha256=np.asarray(CONTRACT_SHA256),
+            g1_sim_eligible=np.asarray(g1_sim_eligible),
             source_report=np.asarray(str(args.output)),
         )
         print(args.chunk_output)

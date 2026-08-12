@@ -1,8 +1,10 @@
-# LGG100 real-weight candidate restore and adaptive A/B
+# LGG100 real-weight quarantine audit for G1 EDU
 
 This runbook loads the actual public weights from
-`LGG100/stack-cube-eef-24k`, queries them with the three MuJoCo cameras, and
-only then permits a paired baseline/adaptive simulation replay.
+`LGG100/stack-cube-eef-24k` and queries them with the frozen G1 EDU observation
+contract. It does **not** currently permit MuJoCo dynamics or G1 hardware
+execution because the checkpoint's unpublished action semantics have not been
+verified against `g1_edu_dual_dex1_eef_v1`.
 
 ## Evidence boundary
 
@@ -34,7 +36,17 @@ action_horizon=50  # candidate default; not encoded in the weights
 ```
 
 The server restores with `remove_extra_params=False`; missing or extra
-parameter leaves fail startup instead of being silently discarded.
+parameter leaves fail startup instead of being silently discarded. Even after
+a strict restore, server metadata deliberately remains:
+
+```text
+g1_contract_verified: false
+g1_action_compatible: false
+safe_for_g1_hardware: false
+```
+
+A 16-D shape is not proof of frame, units, channel order, absolute/delta
+semantics, EEF site, horizon, or normalization compatibility.
 
 ## Gate L0 — actual Ubuntu NVIDIA host
 
@@ -192,7 +204,9 @@ python lgg100_sim_smoke.py \
   --call-timeout-ms 60000
 ```
 
-Inputs are real MuJoCo observations:
+Inputs use the shared G1 preprocessing: each MuJoCo camera renders 640×480 RGB,
+then `g1_policy_contract.py` center-crops 480×480 and bilinear-resizes to
+224×224. The resulting policy observation is:
 
 ```text
 cam_left_high       uint8 [224,224,3]
@@ -209,32 +223,38 @@ results/lgg100_vla_smoke_real.json
 results/lgg100_action_chunk_real.npz
 ```
 
-The gate passes only if server metadata proves strict real-weight restore and
-all calls return one stable finite `[T,16]` shape. It still records:
+The neural-output gate passes only if server metadata proves strict real-weight
+restore and all calls return one stable finite `[T,16]` shape. It still records:
 
 ```text
 author_config_claimed: false
+g1_contract_verified: false
+g1_sim_eligible: false
 g1_execution_enabled: false
 adaptive_retimer_enabled: false
 ```
 
-## Gate L7 — preflight and paired adaptive A/B
+## Gate L7 — blocked until G1 semantic proof exists
 
-Review the smoke JSON first. Then allow **simulation only**:
+`lgg100_adaptive_ab.py` now requires all of the following in both JSON and NPZ:
 
-```bash
-python lgg100_adaptive_ab.py \
-  --smoke-report results/lgg100_vla_smoke_real.json \
-  --chunk results/lgg100_action_chunk_real.npz \
-  --phase grasp \
-  --allow-sim-execution
+```text
+g1_policy_contract_id = g1_edu_dual_dex1_eef_v1
+g1_policy_contract_sha256 = current frozen SHA
+g1_contract_verified = true
+g1_sim_eligible = true
 ```
 
-Before MuJoCo execution, every target must pass finite checks, quaternion norm,
-IK reachability, joint limits, and phase-aware collision preflight. A rejection
-writes evidence and performs no execution.
+The candidate server cannot set these values to true. L7 may only be unlocked
+after obtaining and validating the author's exact transform/config plus a
+golden observation/action sample, or after training our own checkpoint under
+the frozen contract. Contract/action fingerprints detect accidental mismatch;
+they are not signatures, so manually asserted metadata is not accepted evidence.
 
-For a passing preflight, both branches use:
+After genuine semantic verification, every target must pass finite checks,
+quaternion norm, IK reachability, joint limits, and phase-aware collision
+preflight. A rejection writes evidence and performs no execution. For a passing
+preflight, both branches use:
 
 - the exact same saved neural chunk and SHA-256;
 - the exact same initial MuJoCo state;
@@ -249,7 +269,7 @@ baseline: nominal 1.0x timestamps
 adaptive: AdaptiveRetimer timestamps from distance + stability policy
 ```
 
-Evidence:
+Only after L7 is legitimately unlocked, the evidence path is:
 
 ```text
 results/lgg100_adaptive_ab.json

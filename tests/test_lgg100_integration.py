@@ -9,6 +9,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from g1_policy_contract import CONTRACT_ID, CONTRACT_SHA256
 from lgg100_adaptive_ab import HF_REVISION, _load_verified_chunk
 from lgg100_candidate_server import G1CandidateInputs, G1CandidateOutputs
 from lgg100_sim_smoke import build_sim_observation
@@ -17,11 +18,14 @@ from lgg100_sim_smoke import build_sim_observation
 class LGG100CandidateContractTests(unittest.TestCase):
     def test_candidate_input_output_contract_is_strict(self):
         image = np.zeros((224, 224, 3), dtype=np.uint8)
+        state = np.zeros(16, dtype=np.float32)
+        state[6] = 1.0
+        state[13] = 1.0
         mapped = G1CandidateInputs()({
             "observation/cam_left_high": image,
             "observation/cam_left_wrist": image,
             "observation/cam_right_wrist": image,
-            "observation/state": np.zeros(16, dtype=np.float32),
+            "observation/state": state,
             "prompt": "stack blocks",
         })
         self.assertEqual(set(mapped["image"]), {
@@ -46,15 +50,19 @@ class LGG100CandidateContractTests(unittest.TestCase):
             self.assertEqual(observation[key].dtype, np.uint8)
 
     def test_adaptive_ab_requires_passing_fingerprinted_neural_artifact(self):
-        actions = np.zeros((4, 16), dtype=np.float64)
+        actions = np.zeros((50, 16), dtype=np.float64)
         actions[:, 6] = 1.0
         actions[:, 13] = 1.0
-        timestamps = np.arange(4) / 30.0
+        timestamps = np.arange(50) / 30.0
         digest = hashlib.sha256(actions.tobytes()).hexdigest()
         report = {
             "summary": {"passed": True},
             "neural_vla_claimed": True,
             "g1_execution_enabled": False,
+            "g1_sim_eligible": True,
+            "g1_contract_verified": True,
+            "g1_policy_contract_id": CONTRACT_ID,
+            "g1_policy_contract_sha256": CONTRACT_SHA256,
             "checkpoint": {"revision": HF_REVISION},
         }
         with tempfile.TemporaryDirectory() as directory:
@@ -68,11 +76,14 @@ class LGG100CandidateContractTests(unittest.TestCase):
                 timestamps=timestamps,
                 action_sha256=np.asarray(digest),
                 hf_revision=np.asarray(HF_REVISION),
+                g1_policy_contract_id=np.asarray(CONTRACT_ID),
+                g1_policy_contract_sha256=np.asarray(CONTRACT_SHA256),
+                g1_sim_eligible=np.asarray(True),
             )
             chunk, actual_digest, norm_error = _load_verified_chunk(
-                chunk_path, report_path, 0.15
+                chunk_path, report_path, 0.001
             )
-            self.assertEqual(chunk.actions.shape, (4, 16))
+            self.assertEqual(chunk.actions.shape, (50, 16))
             self.assertEqual(actual_digest, digest)
             self.assertAlmostEqual(norm_error, 0.0)
 
@@ -82,9 +93,12 @@ class LGG100CandidateContractTests(unittest.TestCase):
                 timestamps=timestamps,
                 action_sha256=np.asarray("wrong"),
                 hf_revision=np.asarray(HF_REVISION),
+                g1_policy_contract_id=np.asarray(CONTRACT_ID),
+                g1_policy_contract_sha256=np.asarray(CONTRACT_SHA256),
+                g1_sim_eligible=np.asarray(True),
             )
             with self.assertRaises(ValueError):
-                _load_verified_chunk(chunk_path, report_path, 0.15)
+                _load_verified_chunk(chunk_path, report_path, 0.001)
 
 
 if __name__ == "__main__":

@@ -42,10 +42,6 @@ def main() -> None:
         run([sys.executable, "generate_report.py", "--record", "Unit tests failed; dynamics runs skipped."])
         raise SystemExit(tests.returncode)
 
-    vla_mock = run([
-        sys.executable, "openpi_droid_smoke.py", "--mock", "--calls", "8",
-        "--output", "results/openpi_droid_smoke_mock.json",
-    ])
     baseline = run([
         sys.executable, "run_simulation.py", "--baseline", "--output", "results/baseline.json"
     ])
@@ -54,13 +50,12 @@ def main() -> None:
     ])
     cameras = run([sys.executable, "render_camera_observations.py"])
     success = (
-        vla_mock.returncode == 0
-        and baseline.returncode == 0
+        baseline.returncode == 0
         and adaptive.returncode == 0
         and cameras.returncode == 0
     )
     detail = (
-        f"{test_count}/{test_count} 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
+        f"{test_count}/{test_count} 项自动测试、G1 EDU contract baseline/adaptive 全链路和三路相机渲染全部通过。"
         if success else
         "一个或多个动力学测试失败，请检查 JSON 证据和控制台输出。"
     )

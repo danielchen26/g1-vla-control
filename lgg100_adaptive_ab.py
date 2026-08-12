@@ -19,6 +19,11 @@ import numpy as np
 
 from action_schema import EEFActionChunk, pelvis_vla_action_to_world_mujoco
 from adaptive_retimer import AdaptiveRetimer
+from g1_policy_contract import (
+    ACTION_HORIZON, CONTRACT_ID, CONTRACT_SHA256, POLICY_RATE_HZ,
+    QUATERNION_NORM_TOLERANCE,
+    validate_action_chunk,
+)
 from retiming_safety_validation import _run_scale
 from safety_governor import G1TargetPreflight
 from stack_scene import REFERENCE_EP0_STATE, build_model, reset_to_reference_pose
@@ -34,6 +39,10 @@ def _load_verified_chunk(chunk_path: Path, report_path: Path, quaternion_toleran
         report.get("summary", {}).get("passed") is True
         and report.get("neural_vla_claimed") is True
         and report.get("g1_execution_enabled") is False
+        and report.get("g1_sim_eligible") is True
+        and report.get("g1_contract_verified") is True
+        and report.get("g1_policy_contract_id") == CONTRACT_ID
+        and report.get("g1_policy_contract_sha256") == CONTRACT_SHA256
         and report.get("checkpoint", {}).get("revision") == HF_REVISION
     ):
         raise ValueError("Source smoke report is not a passing real-neural output-only gate")
@@ -42,15 +51,23 @@ def _load_verified_chunk(chunk_path: Path, report_path: Path, quaternion_toleran
         timestamps = np.asarray(payload["timestamps"], dtype=np.float64)
         expected_hash = str(payload["action_sha256"].item())
         revision = str(payload["hf_revision"].item())
+        contract_id = str(payload["g1_policy_contract_id"].item())
+        contract_sha256 = str(payload["g1_policy_contract_sha256"].item())
+        sim_eligible = bool(payload["g1_sim_eligible"].item())
     actual_hash = hashlib.sha256(actions.tobytes()).hexdigest()
-    if actual_hash != expected_hash or revision != HF_REVISION:
-        raise ValueError("Chunk fingerprint/revision does not match the smoke artifact")
-    if actions.ndim != 2 or actions.shape[1] != 16 or len(actions) < 2:
-        raise ValueError(f"Expected [T,16] with T>=2, got {actions.shape}")
-    if timestamps.shape != (len(actions),) or not np.all(np.diff(timestamps) > 0):
-        raise ValueError("Chunk timestamps must be strictly increasing")
-    if not np.all(np.isfinite(actions)):
-        raise ValueError("Chunk contains NaN/Inf")
+    if (
+        actual_hash != expected_hash
+        or revision != HF_REVISION
+        or contract_id != CONTRACT_ID
+        or contract_sha256 != CONTRACT_SHA256
+        or not sim_eligible
+    ):
+        raise ValueError("Chunk fingerprint/revision/G1 contract does not match the smoke artifact")
+    validate_action_chunk(
+        actions, timestamps,
+        expected_horizon=ACTION_HORIZON,
+        expected_rate_hz=POLICY_RATE_HZ,
+    )
     norms = np.r_[
         np.linalg.norm(actions[:, 3:7], axis=1),
         np.linalg.norm(actions[:, 10:14], axis=1),
@@ -101,7 +118,10 @@ def main() -> None:
     parser.add_argument("--smoke-report", type=Path, default=RESULTS / "lgg100_vla_smoke_real.json")
     parser.add_argument("--output", type=Path, default=RESULTS / "lgg100_adaptive_ab.json")
     parser.add_argument("--phase", choices=("free_space", "grasp", "place"), default="grasp")
-    parser.add_argument("--quaternion-norm-tolerance", type=float, default=0.15)
+    parser.add_argument(
+        "--quaternion-norm-tolerance", type=float,
+        default=QUATERNION_NORM_TOLERANCE,
+    )
     parser.add_argument("--allow-sim-execution", action="store_true")
     args = parser.parse_args()
     if not args.allow_sim_execution:
@@ -117,6 +137,9 @@ def main() -> None:
     evidence = {
         "scope": "Paired single-chunk MuJoCo retiming A/B; never G1 hardware.",
         "checkpoint_revision": HF_REVISION,
+        "g1_policy_contract_id": CONTRACT_ID,
+        "g1_policy_contract_sha256": CONTRACT_SHA256,
+        "g1_contract_verified": True,
         "chunk_sha256": chunk_hash,
         "chunk_shape": list(chunk.actions.shape),
         "path_geometry_identical": True,

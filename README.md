@@ -1,10 +1,34 @@
-# Unitree G1 · Dex1 · VLA 仿真验证
+# G1 EDU Dual-Dex1 VLA Control
 
-[![MuJoCo validation](https://github.com/danielchen26/g1-vla-control/actions/workflows/validation.yml/badge.svg)](https://github.com/danielchen26/g1-vla-control/actions/workflows/validation.yml)
+本仓库只服务一个目标：
 
-面向 Apple M4 Air 24 GB 的本地 MuJoCo 验证环境。真实 OpenPI VLA 计划在 Ubuntu NVIDIA 主机运行，本机负责场景、三路相机、动作契约、IK、Dex1 和评测。
+```text
+Unitree G1 Education + 左右 Dex1-1
+固定站立的双臂视觉语言操作
+MuJoCo 验证通过后迁移到同一台 G1 EDU
+```
 
-> 当前边界：验证输入分为确定性 Stub 和公开 episode 的 recorded-policy proxy，两者都不是真实 VLA 在线输出。真实 checkpoint 仍缺 OpenPI config 和精确 joint↔EEF transform。
+不兼容 G1 16-D contract 的机器人 action、过渡模型和 transport mock 不属于主 simulation。
+
+## 唯一 Sim-to-Real 链路
+
+```text
+cam_left_high + cam_left_wrist + cam_right_wrist
+                    +
+pelvis-frame 16-D EEF/Dex1 state + canonical prompt
+                    ↓
+π0.5 Base + pi05_g1_edu_dual_eef LoRA
+                    ↓
+pelvis-frame 16-D absolute EEF/Dex1 action chunk
+                    ↓
+contract validator → stale/IK/collision preflight → EEF limits
+                    ↓
+G1 dual-arm IK → ordered 14-joint limits + Dex1 mapping
+                    ↓
+MuJoCo boundary / Unitree G1 EDU hardware boundary
+```
+
+第一版 VLA 不控制腿、行走、躯干或平衡。它们继续由 Unitree 官方控制器负责。
 
 ## 安装
 
@@ -16,173 +40,159 @@ conda activate mujoco
 python -m pip install -r requirements.txt
 ```
 
-如果已经 clone 但没有下载第三方模型：
+已有 clone 补齐官方模型：
 
 ```bash
 git submodule update --init --recursive
 ```
 
-模型默认从 `third_party/mujoco_menagerie` 加载；也可以通过环境变量覆盖：
+## 冻结的 G1 Policy Contract
 
-```bash
-export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
-```
-
-## 当前已完成
-
-- Unitree G1 29-DoF 官方 MuJoCo Menagerie 模型
-- Unitree 官方 Dex1-1 URDF/STL（BSD-3-Clause）替换原 rubber/articulated hand
-- 左右 Dex1 各两个对称 prismatic finger actuator
-- VLA 夹爪电机值到 URDF 指爪的反向映射：`0 rad` 闭合、`5.5 rad` 张开（由同步 episode-0 首帧验证方向）
-- 白色桌面、红/蓝/黄动态方块、摩擦与碰撞
-- `cam_left_high`、`cam_left_wrist`、`cam_right_wrist` 三路 640×480 RGB
-- 16-D 双手 EEF action schema
-- VLA `xyzw` 与 MuJoCo `wxyz` 四元数边界转换
-- XYZ 插值、Quaternion SLERP、G1 双臂 IK
-- 自动测试、JSON 证据、验证历史和现代化 HTML App
-- 可选 adaptive speed 模块；真实 VLA smoke test 可以完全绕过它
-- Gate-A sim-only EEF v/a/jerk safety filter
-- Gate-A.2 14-D 逐关节 command v/a/jerk filter 与 phase-aware target preflight
-- OpenPI π0.5-DROID output-only WebSocket smoke client、Mock evidence 与固定版本部署说明
-- LGG100 固定 revision 的 strict candidate restore server、真实 MuJoCo observation smoke 与同 chunk adaptive A/B gate（代码已就绪，GPU 未执行）
-
-## 尚未完成
-
-- π0.5-DROID 的 Ubuntu NVIDIA 真实 output-only inference（当前真实调用数为 0）
-- `LGG100/stack-cube-eef-24k` 的 Ubuntu NVIDIA strict restore 与真实神经网络推理（代码已就绪；当前真实调用数为 0）
-- 模型作者的 OpenPI training config、repack transform 和 EEF 坐标定义
-- 训练仿真器的精确相机内外参与视觉域
-- 真实 VLA action chunk 的离线可视化与闭环执行
-- 能约束 actual qvel acceleration/jerk 的真实低层控制器接口与反馈层
-- 真实 VLA 抓取/堆叠成功率
-- 真机 G1 EDU 测试
-
-## 深度验证结果
-
-- 审计全部 100 episodes / 95,966 帧：raw parquet 是 14-D 关节绝对目标 + 2-D Dex1 电机值
-- `action[t]` 与 `state[t+3]` 最吻合，对应约 0.10 秒响应延迟
-- 候选训练 transform：pelvis frame、wrist +X 50 mm、quaternion `xyzw`；与 norm stats 高度吻合但非精确相等
-- Episode 0 全 678 帧、22.57 秒连续动力学回放；站立保持稳定，EEF P95 误差约 20 mm
-- 250 个随机真实数据 EEF 目标：IK 在 2 mm / 1° 门槛下 250/250 收敛，未发现近奇异样本
-- 1000 组宽于训练域的双手位置压力测试：关节范围始终合规，但大量目标饱和/碰撞，确认需要显式可达性拒绝器
-- Dex1 指尖间距约 21–100 mm；左右几何最大差约 0.039 mm
-- 左右预定位合成抓持零扰动 2/2；左手在 2 N 失效、右手在 4 N 失效，明确记录不对称边界
-- 30 秒稳定性通过；20 组质量/摩擦/位置随机化通过
-- 躯干冲击连续通过至 20 N；40 N 倒地，60 N 漂移/倾斜超门槛
-- 视觉域量化显示仍有明显中心、尺度、背景、照明和夹爪外观差异
-- Orbax 参数签名强烈指向 `Pi0Config(pi05=True)` + LoRA，内部 action padding 32、发布动作维度 16；仍不能无 config 安全恢复
-
-## Gate-A 调速安全层
-
-使用公开训练目标 P99 作为 sim-only 初值：
+单一来源：[`g1_policy_contract.yaml`](g1_policy_contract.yaml)
 
 ```text
-EEF speed       0.227 m/s
-EEF acceleration 2.760 m/s²
-EEF jerk        125.67 m/s³
-Angular speed   1.044 rad/s
-Gripper speed   5.793 rad/s
+contract_id: g1_edu_dual_dex1_eef_v1
+camera preprocessing: 640×480 RGB → center crop 480×480 → bilinear 224×224
+policy rate: 30 Hz
+action horizon: 50
+action semantics: absolute target
+action frame: pelvis
+action dimension: 16
+quaternion: xyzw
+EEF: wrist_yaw_link local +X 50 mm
+Dex1: 0 rad closed / 5.5 rad open
 ```
 
-Episode 0 在 `0.50× / 0.75× / 1.00× / 1.25× / 1.50×` 五档回放中，EEF 与 14-D joint command 均满足各自训练 target P99 limits，最终 endpoint 误差均小于 0.91 mm。Phase-aware preflight 对 100 个 OOD 目标全部拒绝。公开数据没有 phase 标签：free-space 视图接受 44/68；假定全部为 grasp 的宽松视图接受 59/68。后者不是已恢复的真实任务阶段，并包含明确记录的 torso/shoulder 模型重叠 allowlist。
-
-但 command 合规不等于 actual dynamics 合规：1.25× 下 MuJoCo actual joint jerk 出现约 100k rad/s³。尖峰发生在 `right_shoulder_roll_joint`、t=10.538 s，事件帧没有当前策略定义的 forbidden contact，指向 position actuator/controller transient，而不是 joint command 超限。因此当前不建议把 `≥1.25×` 作为候选安全档，也不能把这些数据解释为真机限制。
-
-### 为什么没加载 VLA 仍能做 Gate A/A.2
-
-公开 episode 的 joint action 经候选 FK 重建为 16-D EEF，作为 **recorded-policy proxy** 输入同一个下游链路。这能验证 schema、坐标转换、filter、IK、command limits 和拒绝逻辑，但不能验证真实 VLA 的 chunk timing、延迟、输出分布、视觉闭环或叠积木成功率。Gate B 会用带时间戳的真实 OpenPI chunk 替换该输入源并重跑全部测试。
-
-## 第一真实 VLA Smoke：π0.5-DROID
-
-已按官方 OpenPI revision `15a9616a00943ada6c20a0f158e3adb39df2ccac` 建立 output-only 客户端：
+Action 顺序：
 
 ```text
-config:     pi05_droid
-checkpoint: gs://openpi-assets/checkpoints/pi05_droid
+0:3    left EEF XYZ, m, pelvis
+3:7    left quaternion xyzw
+7:10   right EEF XYZ, m, pelvis
+10:14  right quaternion xyzw
+14:16  left/right Dex1 motor, rad
 ```
 
-本地 Mock 只验证 WebSocket 审计契约、rank-2/8-D action 检查、NaN fail-closed、timestamp、latency、stale 标记和 SHA-256。它明确记录：
+Policy 之后只输出双臂 14 个 absolute joint-position target，顺序也在 contract 中冻结。真机 adapter 不允许重新排列、补零、镜像或猜测 frame。
 
-```text
-neural_vla_claimed: false
-g1_execution_enabled: false
-g1_action_compatible: false
-```
+## 可直接迁移到 G1 的模块
 
-Ubuntu NVIDIA endpoint 到位后运行：
+| 文件 | 职责 | 真机迁移方式 |
+|---|---|---|
+| `g1_policy_contract.yaml` | 唯一 observation/action/timing 定义 | 原样复用 |
+| `g1_policy_contract.py` | schema、finite、quaternion、Dex1、metadata validator | 原样复用 |
+| `action_schema.py` | 16-D chunk、pelvis/world、xyzw/wxyz、SLERP | 原样复用 |
+| `safety_governor.py` | IK/collision preflight、EEF/Joint command filters | 用官方 limits 标定后复用 |
+| `g1_dual_arm_ik.py` | G1 双臂 14-joint IK | 用真机模型和反馈核对后复用 |
+| `dex1_gripper.py` | Dex1 0–5.5 rad 映射 | 接 Unitree Dex1 接口 |
+| `g1_mujoco_bridge.py` | MuJoCo 图像/state 和 pelvis/world 边界 | 由 G1 hardware bridge 替换 |
+| `run_simulation.py` | 完整 production-path regression | 每次真机发布前继续运行 |
 
-```bash
-python openpi_droid_smoke.py --host 127.0.0.1 --port 8000 --calls 30
-```
-
-真实证据将写入 `results/openpi_droid_smoke_real.json`。DROID 8-D action 仍然只记录，绝不通过补零或人工复制映射到 G1。完整步骤见 [`OPENPI_DROID_SMOKE.md`](OPENPI_DROID_SMOKE.md)。
-
-## LGG100 真实权重与 Adaptive A/B
-
-Hugging Face revision `cced7a7ff7b454fdcac555457a1a2a3dc262ac77` 发布了 6.676 GiB Orbax 参数和 16-D norm stats，但没有作者 OpenPI config/transform。仓库提供的 candidate server 使用 `remove_extra_params=False` 严格恢复：参数树不完全一致就停止，不会静默丢弃权重。
-
-```text
-lgg100_candidate_server.py  Ubuntu GPU 严格加载真实权重
-lgg100_sim_smoke.py         三路 MuJoCo RGB + 16-D state，只记录真实 chunk
-lgg100_adaptive_ab.py       fingerprint/preflight 后，同 chunk baseline/adaptive 配对仿真
-```
-
-单 chunk A/B 只评价 retiming mechanics；必须完成多 chunk 随机化闭环才能判断叠积木成功率是否改善。完整 Ubuntu、SSH tunnel、本地 client 和 fail-closed 命令见 [`LGG100_REAL_VLA.md`](LGG100_REAL_VLA.md)。
-
-一键重跑所有本地可行验证：
-
-```bash
-python run_deep_validation.py
-```
-
-结果写入 `results/*_audit.json`、`results/comprehensive_sim_validation.json` 和 HTML 的“深度验证”Tab。
-
-## 一键验证并更新 HTML
+## 运行 G1 Contract Simulation
 
 ```bash
 conda activate mujoco
 cd ~/g1_vla_control
 python run_validation.py
-open validation_report.html
+open validation_report.html#simulation
 ```
 
-## 查看场景与三路图像
+单独运行：
 
 ```bash
-conda activate mujoco
-cd ~/g1_vla_control
-mjpython run_stack_scene.py
+python run_simulation.py --baseline --output results/baseline.json
+python run_simulation.py --output results/adaptive.json
 python render_camera_observations.py
-open results/camera_observations/camera_contact_sheet.png
 ```
 
-## 目标 Workflow
+`run_simulation.py` 的输入是 deterministic **G1 contract trajectory fixture**，不是 VLA。它只验证未来 policy 下游会实际复用的链路：
 
 ```text
-MuJoCo 三路 RGB + EEF 状态 + prompt
-                  ↓
-Ubuntu NVIDIA · OpenPI checkpoint
-                  ↓
-16-D EEF action chunk
-                  ↓
-坐标系 / quaternion / normalization 逆变换
-                  ↓
-硬安全裁剪（第一轮不启用 adaptive speed）
-                  ↓
-G1 双臂 IK
-                  ↓
-14-D Joint command v/a/jerk filter + Dex1 映射
-                  ↓
-MuJoCo 闭环重规划与任务评测
+16-D pelvis action validation
+→ phase-aware preflight
+→ EEF command filter
+→ pelvis-to-world boundary
+→ G1 dual-arm IK
+→ 14-joint command filter
+→ Dex1 mapping
+→ G1/Dex1 MuJoCo dynamics
 ```
+
+当前 baseline：
+
+- exact 50-step horizon 的 50/50 targets 通过 grasp-phase preflight；
+- EEF 与 joint command limits 通过；
+- endpoint error 约 1.3 mm；
+- forbidden manipulation contact rate 为 0；
+- pelvis 保持稳定。
+
+这些结果只证明接口与命令链，不证明 VLA 会叠积木，也不证明真机动力学安全。MuJoCo position actuator 的 actual jerk 仍有明显瞬态。
+
+## Adaptive Speed
+
+Adaptive 仍是可选模块，不是默认生产路径。当前 contract fixture 中 adaptive 比 baseline 更慢，因此保持关闭。只有满足以下配对条件才可进入 G1：
+
+- 使用同一个 G1 neural chunk；
+- task success 不下降；
+- forbidden collision/drop 不增加；
+- actual joint dynamics 不恶化；
+- 完成时间分布真实改善；
+- G1 官方 limits、低层反馈和 watchdog 已接入。
+
+## Neural Policy 资格
+
+只有 metadata 同时匹配 contract ID、version、SHA，并有受审计的训练 transform/golden sample，才允许进入 MuJoCo dynamics。
+
+`LGG100/stack-cube-eef-24k` 虽然发布 16-D norm stats 和真实 Orbax 权重，但没有作者 config、joint↔EEF transform 或 golden sample。因此当前严格标记：
+
+```text
+g1_contract_verified=false
+g1_action_compatible=false
+g1_sim_eligible=false
+```
+
+它可以做真实权重 output-only 审计，不能因为 shape 是 16-D 就送入 G1 simulation 或硬件。隔离说明见 [`LGG100_REAL_VLA.md`](LGG100_REAL_VLA.md)。最终生产 policy 仍是我们拥有完整契约的 `π0.5 Base + pi05_g1_edu_dual_eef LoRA`。
+
+## MuJoCo → G1 EDU Gates
+
+1. **D0 Contract**：冻结 YAML、validators、round-trip fixtures。
+2. **D1 Hardware parity**：确认 G1 EDU firmware/SDK/control mode、相机标定、EEF site、joint IDs、官方 limits。
+3. **D2 Dataset**：100 episodes 转换为冻结 16-D contract，episode-level split，无 frame leakage。
+4. **D3 G1 LoRA**：训练并记录 OpenPI commit、config、seed、normalization、checkpoint hash、golden sample。
+5. **D4 Offline**：真实 policy chunk 只保存，不执行；schema/timing/IK/collision 全部通过。
+6. **D5 MuJoCo closed loop**：multi-chunk、任务成功率、随机化、网络 jitter、stale/断线。
+7. **D6 Shadow/HIL**：真机 observation 输入 policy，机器人保持 hold，只记录建议 action。
+8. **D7 Staged hardware**：E-stop 和支撑下逐步执行单臂、双臂、桌面、轻物体、已训练任务。
+
+上一 Gate 不通过，下一 Gate 不得获得 action 权限。
+
+## 当前真机阻塞项
+
+- G1 EDU 准确 firmware、Unitree SDK 与 control mode；
+- 三相机型号、安装位姿、内外参和硬件时间同步；
+- 真机 pelvis 与左右 50 mm EEF site 标定；
+- 官方逐关节 position/velocity/torque/current limits；
+- 低层反馈、watchdog、hold、通信中断和 E-stop；
+- G1 hardware adapter 与 Shadow/HIL logs；
+- 通过冻结 contract 训练并验证的真实 neural policy。
+
+在这些项目完成前：
+
+```text
+g1_hardware_execution_enabled=false
+```
+
+## 深度验证
+
+```bash
+python run_deep_validation.py
+```
+
+现有证据包括：100 episodes / 95,966 帧数据审计、episode-0 回放、250/250 数据内 IK、1000 OOD workspace、Dex1 抓持边界、30 秒稳定性、20 组随机化、扰动和视觉域差异。它们继续用于 G1 场景与安全链验证，但不会被描述成 neural VLA 或真机成功。
 
 ## 第三方资源
 
-- `third_party/mujoco_menagerie/`：Google DeepMind MuJoCo Menagerie（Git submodule）
-- `third_party/dex1_1_service/`：Unitree 官方 Dex1-1 URDF/STL（Git submodule，BSD-3-Clause）
+- `third_party/mujoco_menagerie/`：Google DeepMind MuJoCo Menagerie
+- `third_party/dex1_1_service/`：Unitree Dex1-1 URDF/STL，BSD-3-Clause
 
-各第三方资源继续适用其上游许可证；本仓库未包含 VLA checkpoint 和公开数据集视频。
-
-## 结论边界
-
-当前证据证明场景、官方 Dex1、三路相机、动作接口、IK 和本地动力学链路可运行。它尚不证明真实 VLA 能完成叠积木，也不证明系统已达到真机安全标准。
+仓库不包含 VLA checkpoint。第三方资源继续适用其上游许可证。

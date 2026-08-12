@@ -112,6 +112,11 @@ class StackSceneTests(unittest.TestCase):
                 )
                 values.append(data.qpos[self.model.jnt_qposadr[joint_id]])
         np.testing.assert_allclose(values, REFERENCE_EP0_STATE[:14], atol=1e-8)
+        np.testing.assert_allclose(
+            Dex1Controller(self.model).motor_states(data),
+            REFERENCE_EP0_STATE[14:16],
+            atol=1e-8,
+        )
 
     def test_dex1_motor_mapping_matches_limits(self):
         self.assertAlmostEqual(motor_radians_to_jaw_position(0.0), JAW_MAX_M)
