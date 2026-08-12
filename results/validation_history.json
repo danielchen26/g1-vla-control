@@ -168,5 +168,10 @@
     "time": "2026-08-12 12:09 EDT",
     "title": "Validation run",
     "detail": "新增独立 G1 最终部署 Tab：唯一生产目标确定为 OpenPI π0.5 Base + 自有 G1/Dex1 16-D 双臂 EEF LoRA；记录语音职责边界、Policy Contract、D0–D7 Gate workflow、GPU/机载拓扑、任务范围与真机分阶段门槛。"
+  },
+  {
+    "time": "2026-08-12 12:11 EDT",
+    "title": "Validation run",
+    "detail": "G1 最终部署 Workflow 的 GitHub Actions Run 31616180656 已通过：Ubuntu headless 21/21、动力学、三路渲染、HTML 检查与 artifact 全部成功；跨平台功能 CI 更新为 7/7。"
   }
 ]
