@@ -158,5 +158,10 @@
     "time": "2026-08-12 16:26 EDT",
     "title": "G1 EDU validation run",
     "detail": "新增真正 LGG100 + Adaptive Module 的 R0–R12 执行计划：GPU/strict restore/output-only、语义 attestation、phase/clearance context、真实 chunk preflight/same-chunk A-B、Baseline 闭环、30/100 配对任务、故障注入与发布阈值。"
+  },
+  {
+    "time": "2026-08-12 16:29 EDT",
+    "title": "G1 EDU validation run",
+    "detail": "真正 LGG100 + Adaptive Module R0–R12 执行计划的 GitHub Actions Run 31637736729 已通过：Ubuntu headless 24/24、G1 dynamics、far/near coverage、三路相机、HTML 和 artifacts 全部成功。"
   }
 ]
