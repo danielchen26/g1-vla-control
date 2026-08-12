@@ -153,5 +153,10 @@
     "time": "2026-08-11 16:58 EDT",
     "title": "Validation run",
     "detail": "π0.5-DROID output-only client 提交的 GitHub Actions Run 31535461865 已通过：Ubuntu headless 21/21、Mock evidence、动力学、三路渲染、HTML 与 artifact 全部成功；真实神经调用仍为 0。"
+  },
+  {
+    "time": "2026-08-12 11:09 EDT",
+    "title": "Validation run",
+    "detail": "将报告重构为执行摘要：按系统层列出已完成项，新增 M4 SmolVLA 本地过渡路线、Whisper 语音入口、π0.5 Base G1 LoRA 最终路线、双路线推进图、P0–P5 交付物与验收门槛；真实神经 VLA 调用仍为 0。"
   }
 ]
