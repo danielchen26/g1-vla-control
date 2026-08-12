@@ -163,7 +163,10 @@ g1_action_compatible=false
 g1_sim_eligible=false
 ```
 
-这不是放弃 LGG100，而是它的第一道接入 Gate：先 output-only 恢复真实权重，再验证语义，然后进入 MuJoCo。不能因为 shape 是 16-D 就直接执行。完整步骤见 [`LGG100_REAL_VLA.md`](LGG100_REAL_VLA.md)。
+这不是放弃 LGG100，而是它的第一道接入 Gate：先 output-only 恢复真实权重，再验证语义，然后进入 MuJoCo。不能因为 shape 是 16-D 就直接执行。
+
+- GPU 安装与真实权重命令：[`LGG100_REAL_VLA.md`](LGG100_REAL_VLA.md)
+- 真正 VLA + Adaptive Module 完整 Gate：[`REAL_LGG100_ADAPTIVE_WORKFLOW.md`](REAL_LGG100_ADAPTIVE_WORKFLOW.md)
 
 ## MuJoCo → G1 EDU Gates
 

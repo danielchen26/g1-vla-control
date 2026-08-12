@@ -165,20 +165,24 @@ def main() -> None:
         bool(record["finite"] and record["valid_16d_chunk"] and record["error"] is None)
         for record in records
     )
+    output_contract_valid_calls = sum(
+        bool(record.get("g1_action_contract_valid")) for record in records
+    )
     neural_output_passed = bool(
         strict_neural_restore
         and not warmup_errors
         and valid_calls == args.calls
         and len(shapes) == 1
     )
+    structural_output_passed = bool(
+        neural_output_passed and output_contract_valid_calls == args.calls
+    )
     expected_contract = contract_metadata(verified=True)
     g1_contract_verified = all(
         metadata.get(key) == value for key, value in expected_contract.items()
     )
     g1_sim_eligible = bool(
-        neural_output_passed
-        and g1_contract_verified
-        and all(record.get("g1_action_contract_valid") for record in records)
+        structural_output_passed and g1_contract_verified
     )
     latency_array = np.asarray(latencies, dtype=np.float64)
     latency_summary = {
@@ -202,19 +206,23 @@ def main() -> None:
         "server_metadata": metadata,
         "observation": observation_evidence,
         "summary": {
-            "passed": neural_output_passed,
+            "passed": structural_output_passed,
             "neural_output_passed": neural_output_passed,
+            "structural_output_passed": structural_output_passed,
             "g1_sim_eligible": g1_sim_eligible,
             "calls": args.calls,
             "valid_calls": valid_calls,
+            "output_contract_valid_calls": output_contract_valid_calls,
             "warmup_errors": warmup_errors,
             "unique_action_shapes": [list(shape) for shape in sorted(shapes)],
             "latency_ms": latency_summary,
         },
         "calls": records,
         "verdict": (
-            "Neural output passed, but semantics are not verified against the frozen G1 EDU contract. Keep output-only; simulation and hardware remain blocked."
-            if neural_output_passed and not g1_sim_eligible else
+            "Neural output passed, but shape/quaternion/Dex1 structural validation failed. Do not save or execute a chunk."
+            if neural_output_passed and not structural_output_passed else
+            "Neural and structural output passed, but semantics are not verified against the frozen G1 EDU contract. Keep output-only; simulation and hardware remain blocked."
+            if structural_output_passed and not g1_sim_eligible else
             "Neural output and frozen G1 contract both passed; the artifact may proceed to G1 preflight, never directly to hardware."
             if g1_sim_eligible else
             "Restore/inference gate failed. Do not execute the chunk in simulation or hardware."
@@ -225,7 +233,7 @@ def main() -> None:
     print(args.output)
     print(json.dumps(report["summary"], indent=2))
 
-    if neural_output_passed:
+    if structural_output_passed:
         selected = chunks[0]
         timestamps = np.arange(len(selected), dtype=np.float64) / args.action_rate_hz
         args.chunk_output.parent.mkdir(parents=True, exist_ok=True)

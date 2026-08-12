@@ -153,5 +153,10 @@
     "time": "2026-08-12 13:18 EDT",
     "title": "G1 EDU validation run",
     "detail": "LGG100 选型与 G1 adaptive phase coverage 的 GitHub Actions Run 31621781332 已通过：Ubuntu headless 24/24、50-step dynamics、17 cm far→near、三路相机、contract SHA 与 artifacts 全部成功；真实 LGG100 调用仍为 0。"
+  },
+  {
+    "time": "2026-08-12 16:26 EDT",
+    "title": "G1 EDU validation run",
+    "detail": "新增真正 LGG100 + Adaptive Module 的 R0–R12 执行计划：GPU/strict restore/output-only、语义 attestation、phase/clearance context、真实 chunk preflight/same-chunk A-B、Baseline 闭环、30/100 配对任务、故障注入与发布阈值。"
   }
 ]

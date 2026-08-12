@@ -4,7 +4,9 @@
 the actual public weights and queries them with the frozen G1 EDU observation
 contract. The current first stage is output-only: MuJoCo dynamics and G1
 hardware remain blocked until the checkpoint's unpublished action semantics
-are verified against `g1_edu_dual_dex1_eef_v1`.
+are verified against `g1_edu_dual_dex1_eef_v1`. The full real-VLA → semantic
+attestation → Adaptive Module → task-level A/B plan is in
+[`REAL_LGG100_ADAPTIVE_WORKFLOW.md`](REAL_LGG100_ADAPTIVE_WORKFLOW.md).
 
 ## Evidence boundary
 
