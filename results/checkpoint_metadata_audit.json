@@ -1,5 +1,23 @@
 {
   "repository": "LGG100/stack-cube-eef-24k",
+  "huggingface_revision": "cced7a7ff7b454fdcac555457a1a2a3dc262ac77",
+  "revision_matches_audited_value": true,
+  "repository_history": {
+    "commit_count": 2,
+    "commits": [
+      {
+        "id": "cced7a7ff7b454fdcac555457a1a2a3dc262ac77",
+        "title": "Upload folder using huggingface_hub",
+        "date": "2026-07-24T16:54:54.000Z"
+      },
+      {
+        "id": "b2ff4c1a45a381344513eb25951b5107f95c227f",
+        "title": "initial commit",
+        "date": "2026-07-24T16:52:50.000Z"
+      }
+    ],
+    "config_found_in_any_revision": false
+  },
   "public_tree": {
     "files": [
       ".gitattributes",
@@ -20,7 +38,9 @@
       "params/ocdbt.process_0/d/d85dd617847995cd4ef3c443bf996a73",
       "params/ocdbt.process_0/manifest.ocdbt"
     ],
+    "file_count": 17,
     "listed_bytes": 7168237327,
+    "listed_gib": 6.675941242836416,
     "has_params": true,
     "has_norm_stats": true,
     "has_training_config": false,
@@ -349,8 +369,12 @@
     "candidate_model_config": {
       "class": "Pi0Config",
       "pi05": true,
+      "dtype": "bfloat16",
       "action_dim": 32,
-      "paligemma_lora": true,
+      "paligemma_variant": "gemma_2b_lora",
+      "paligemma_lora_rank": 16,
+      "action_expert_variant": "gemma_300m",
+      "action_expert_lora_present": false,
       "action_horizon_candidate": 50,
       "action_horizon_status": "OpenPI default; not encoded in parameter shapes",
       "max_token_len_candidate": 200,
@@ -368,7 +392,8 @@
       "state",
       "prompt"
     ],
-    "exact_variant_confirmed": false
+    "exact_variant_confirmed": false,
+    "strict_candidate_restore_implementation": "lgg100_candidate_server.py"
   },
   "restore_readiness": {
     "checkpoint_payload_available": true,
@@ -376,6 +401,8 @@
     "exact_parameter_tree_config_available": false,
     "custom_data_transform_available": false,
     "safe_to_claim_policy_restore": false,
+    "strict_candidate_restore_available": true,
+    "candidate_restore_proves_real_weights_not_author_semantics": true,
     "still_required": [
       "OpenPI Git commit",
       "complete TrainConfig/ModelConfig",

@@ -173,5 +173,15 @@
     "time": "2026-08-12 12:11 EDT",
     "title": "Validation run",
     "detail": "G1 最终部署 Workflow 的 GitHub Actions Run 31616180656 已通过：Ubuntu headless 21/21、动力学、三路渲染、HTML 检查与 artifact 全部成功；跨平台功能 CI 更新为 7/7。"
+  },
+  {
+    "time": "2026-08-12 12:26 EDT",
+    "title": "Validation run",
+    "detail": "新增 LGG100 真实权重验证链：固定 HF revision cced7a…、严格 candidate parameter-tree restore、MuJoCo 三路真实 observation output-only smoke、fingerprint/preflight 和同一神经 chunk 的 baseline/adaptive 配对仿真；24/24 本地测试通过。尚无合格 Ubuntu NVIDIA host，真实神经调用仍为 0。"
+  },
+  {
+    "time": "2026-08-12 12:26 EDT",
+    "title": "Validation run",
+    "detail": "24/24 项自动测试、OpenPI client Mock、baseline/adaptive 动力学和三路相机渲染全部通过。"
   }
 ]

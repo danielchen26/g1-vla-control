@@ -50,5 +50,6 @@ jobs:
           name: validation-evidence
           path: |
             results/*.json
+            results/*.npz
             results/camera_observations/*.png
             validation_report.html

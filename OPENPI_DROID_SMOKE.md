@@ -33,6 +33,7 @@ git clone --recurse-submodules https://github.com/Physical-Intelligence/openpi.g
 cd openpi
 git checkout 15a9616a00943ada6c20a0f158e3adb39df2ccac
 GIT_LFS_SKIP_SMUDGE=1 uv sync
+GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 uv run scripts/serve_policy.py --env DROID
 ```
 

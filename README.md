@@ -44,11 +44,12 @@ export MUJOCO_MENAGERIE_PATH=/path/to/mujoco_menagerie
 - Gate-A sim-only EEF v/a/jerk safety filter
 - Gate-A.2 14-D 逐关节 command v/a/jerk filter 与 phase-aware target preflight
 - OpenPI π0.5-DROID output-only WebSocket smoke client、Mock evidence 与固定版本部署说明
+- LGG100 固定 revision 的 strict candidate restore server、真实 MuJoCo observation smoke 与同 chunk adaptive A/B gate（代码已就绪，GPU 未执行）
 
 ## 尚未完成
 
 - π0.5-DROID 的 Ubuntu NVIDIA 真实 output-only inference（当前真实调用数为 0）
-- `LGG100/stack-cube-eef-24k` 的真实神经网络推理
+- `LGG100/stack-cube-eef-24k` 的 Ubuntu NVIDIA strict restore 与真实神经网络推理（代码已就绪；当前真实调用数为 0）
 - 模型作者的 OpenPI training config、repack transform 和 EEF 坐标定义
 - 训练仿真器的精确相机内外参与视觉域
 - 真实 VLA action chunk 的离线可视化与闭环执行
@@ -115,6 +116,18 @@ python openpi_droid_smoke.py --host 127.0.0.1 --port 8000 --calls 30
 ```
 
 真实证据将写入 `results/openpi_droid_smoke_real.json`。DROID 8-D action 仍然只记录，绝不通过补零或人工复制映射到 G1。完整步骤见 [`OPENPI_DROID_SMOKE.md`](OPENPI_DROID_SMOKE.md)。
+
+## LGG100 真实权重与 Adaptive A/B
+
+Hugging Face revision `cced7a7ff7b454fdcac555457a1a2a3dc262ac77` 发布了 6.676 GiB Orbax 参数和 16-D norm stats，但没有作者 OpenPI config/transform。仓库提供的 candidate server 使用 `remove_extra_params=False` 严格恢复：参数树不完全一致就停止，不会静默丢弃权重。
+
+```text
+lgg100_candidate_server.py  Ubuntu GPU 严格加载真实权重
+lgg100_sim_smoke.py         三路 MuJoCo RGB + 16-D state，只记录真实 chunk
+lgg100_adaptive_ab.py       fingerprint/preflight 后，同 chunk baseline/adaptive 配对仿真
+```
+
+单 chunk A/B 只评价 retiming mechanics；必须完成多 chunk 随机化闭环才能判断叠积木成功率是否改善。完整 Ubuntu、SSH tunnel、本地 client 和 fail-closed 命令见 [`LGG100_REAL_VLA.md`](LGG100_REAL_VLA.md)。
 
 一键重跑所有本地可行验证：
 

@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent
 RESULTS = ROOT / "results"
 REPO = "LGG100/stack-cube-eef-24k"
 BASE = f"https://huggingface.co/{REPO}/resolve/main"
+EXPECTED_REVISION = "cced7a7ff7b454fdcac555457a1a2a3dc262ac77"
 
 
 def _json(url: str):
@@ -21,8 +22,10 @@ def _json(url: str):
 def main() -> None:
     tree = _json(
         f"https://huggingface.co/api/models/{REPO}/tree/main"
-        "?recursive=true&expand=false"
+        "?recursive=true&expand=true"
     )
+    model_info = _json(f"https://huggingface.co/api/models/{REPO}")
+    commits = _json(f"https://huggingface.co/api/models/{REPO}/commits/main")
     checkpoint = _json(f"{BASE}/_CHECKPOINT_METADATA")
     params = _json(f"{BASE}/params/_METADATA")
     norm = _json(f"{BASE}/assets/stack-cube-eef/norm_stats.json")["norm_stats"]
@@ -56,9 +59,21 @@ def main() -> None:
     )
     report = {
         "repository": REPO,
+        "huggingface_revision": model_info.get("sha"),
+        "revision_matches_audited_value": model_info.get("sha") == EXPECTED_REVISION,
+        "repository_history": {
+            "commit_count": len(commits),
+            "commits": [
+                {"id": item.get("id"), "title": item.get("title"), "date": item.get("date")}
+                for item in commits
+            ],
+            "config_found_in_any_revision": False,
+        },
         "public_tree": {
             "files": files,
+            "file_count": len(files),
             "listed_bytes": total_bytes,
+            "listed_gib": total_bytes / 1024 ** 3,
             "has_params": any(path.startswith("params/") for path in files),
             "has_norm_stats": "assets/stack-cube-eef/norm_stats.json" in files,
             "has_training_config": any(
@@ -92,8 +107,12 @@ def main() -> None:
             "candidate_model_config": {
                 "class": "Pi0Config",
                 "pi05": True if pi05_signature else None,
+                "dtype": "bfloat16",
                 "action_dim": action_kernel[-1] if action_kernel else None,
-                "paligemma_lora": True if has_lora else None,
+                "paligemma_variant": "gemma_2b_lora" if has_lora else None,
+                "paligemma_lora_rank": 16 if has_lora else None,
+                "action_expert_variant": "gemma_300m",
+                "action_expert_lora_present": False if has_lora else None,
                 "action_horizon_candidate": 50,
                 "action_horizon_status": "OpenPI default; not encoded in parameter shapes",
                 "max_token_len_candidate": 200,
@@ -105,6 +124,7 @@ def main() -> None:
                 "base_0_rgb", "left_wrist_0_rgb", "right_wrist_0_rgb", "state", "prompt"
             ],
             "exact_variant_confirmed": False,
+            "strict_candidate_restore_implementation": "lgg100_candidate_server.py",
         },
         "restore_readiness": {
             "checkpoint_payload_available": True,
@@ -112,6 +132,8 @@ def main() -> None:
             "exact_parameter_tree_config_available": False,
             "custom_data_transform_available": False,
             "safe_to_claim_policy_restore": False,
+            "strict_candidate_restore_available": True,
+            "candidate_restore_proves_real_weights_not_author_semantics": True,
             "still_required": [
                 "OpenPI Git commit", "complete TrainConfig/ModelConfig",
                 "DataConfig and repack/FK transform", "inference observation keys",

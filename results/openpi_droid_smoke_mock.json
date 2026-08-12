@@ -40,19 +40,19 @@
     ],
     "unique_chunk_fingerprints": 8,
     "latency": {
-      "mean_ms": 0.010833375,
-      "p50_ms": 0.0091455,
-      "p95_ms": 0.017073249999999998,
-      "p99_ms": 0.018648249999999998,
-      "max_ms": 0.019042
+      "mean_ms": 0.01324475,
+      "p50_ms": 0.0115205,
+      "p95_ms": 0.023421049999999995,
+      "p99_ms": 0.02661781,
+      "max_ms": 0.027417
     }
   },
   "calls": [
     {
       "call": 0,
-      "request_wall_time_ns": 1786481635529726000,
-      "response_wall_time_ns": 1786481635529737000,
-      "latency_ms": 0.009583,
+      "request_wall_time_ns": 1786552000205718000,
+      "response_wall_time_ns": 1786552000205729000,
+      "latency_ms": 0.010833,
       "stale": false,
       "action_shape": [
         10,
@@ -74,9 +74,9 @@
     },
     {
       "call": 1,
-      "request_wall_time_ns": 1786481635530370000,
-      "response_wall_time_ns": 1786481635530382000,
-      "latency_ms": 0.0115,
+      "request_wall_time_ns": 1786552000206420000,
+      "response_wall_time_ns": 1786552000206436000,
+      "latency_ms": 0.016,
       "stale": false,
       "action_shape": [
         10,
@@ -98,9 +98,9 @@
     },
     {
       "call": 2,
-      "request_wall_time_ns": 1786481635530992000,
-      "response_wall_time_ns": 1786481635531000000,
-      "latency_ms": 0.008667,
+      "request_wall_time_ns": 1786552000207055000,
+      "response_wall_time_ns": 1786552000207067000,
+      "latency_ms": 0.012208,
       "stale": false,
       "action_shape": [
         10,
@@ -122,9 +122,9 @@
     },
     {
       "call": 3,
-      "request_wall_time_ns": 1786481635531602000,
-      "response_wall_time_ns": 1786481635531610000,
-      "latency_ms": 0.008041,
+      "request_wall_time_ns": 1786552000207850000,
+      "response_wall_time_ns": 1786552000207878000,
+      "latency_ms": 0.027417,
       "stale": false,
       "action_shape": [
         10,
@@ -146,9 +146,9 @@
     },
     {
       "call": 4,
-      "request_wall_time_ns": 1786481635532452000,
-      "response_wall_time_ns": 1786481635532472000,
-      "latency_ms": 0.019042,
+      "request_wall_time_ns": 1786552000208726000,
+      "response_wall_time_ns": 1786552000208740000,
+      "latency_ms": 0.013917,
       "stale": false,
       "action_shape": [
         10,
@@ -170,9 +170,9 @@
     },
     {
       "call": 5,
-      "request_wall_time_ns": 1786481635533247000,
-      "response_wall_time_ns": 1786481635533260000,
-      "latency_ms": 0.013417,
+      "request_wall_time_ns": 1786552000209304000,
+      "response_wall_time_ns": 1786552000209313000,
+      "latency_ms": 0.008958,
       "stale": false,
       "action_shape": [
         10,
@@ -194,9 +194,9 @@
     },
     {
       "call": 6,
-      "request_wall_time_ns": 1786481635533924000,
-      "response_wall_time_ns": 1786481635533933000,
-      "latency_ms": 0.008708,
+      "request_wall_time_ns": 1786552000209936000,
+      "response_wall_time_ns": 1786552000209945000,
+      "latency_ms": 0.008583,
       "stale": false,
       "action_shape": [
         10,
@@ -218,9 +218,9 @@
     },
     {
       "call": 7,
-      "request_wall_time_ns": 1786481635534597000,
-      "response_wall_time_ns": 1786481635534604000,
-      "latency_ms": 0.007709,
+      "request_wall_time_ns": 1786552000210623000,
+      "response_wall_time_ns": 1786552000210631000,
+      "latency_ms": 0.008042,
       "stale": false,
       "action_shape": [
         10,
