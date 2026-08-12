@@ -158,5 +158,10 @@
     "time": "2026-08-12 11:09 EDT",
     "title": "Validation run",
     "detail": "将报告重构为执行摘要：按系统层列出已完成项，新增 M4 SmolVLA 本地过渡路线、Whisper 语音入口、π0.5 Base G1 LoRA 最终路线、双路线推进图、P0–P5 交付物与验收门槛；真实神经 VLA 调用仍为 0。"
+  },
+  {
+    "time": "2026-08-12 11:12 EDT",
+    "title": "Validation run",
+    "detail": "结构化本地 VLA 路线图的 GitHub Actions Run 31610777954 已通过：Ubuntu headless 21/21、动力学、三路渲染、HTML 检查与 artifact 均成功；跨平台功能 CI 更新为 6/6。"
   }
 ]
