@@ -148,5 +148,10 @@
     "time": "2026-08-12 13:02 EDT",
     "title": "G1 EDU validation run",
     "detail": "24/24 项自动测试、G1 EDU contract baseline/adaptive 全链路和三路相机渲染全部通过。"
+  },
+  {
+    "time": "2026-08-12 13:06 EDT",
+    "title": "G1 EDU validation run",
+    "detail": "G1 EDU-only sim-to-real GitHub Actions Run 31620798982 已通过：Ubuntu headless 24/24、exact 50-step contract dynamics、三路 OSMesa、contract ID/SHA 与 artifact 全部成功。"
   }
 ]

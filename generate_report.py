@@ -28,6 +28,7 @@ CHECKS = [
     ("Dynamics", "G1 contract fixture baseline", "pass", "finite, command limits pass, pelvis stable and endpoint below 35 mm"),
     ("Dynamics", "Actual controller jerk", "partial", "MuJoCo position-actuator transient remains too large for a hardware-safety claim"),
     ("Robustness", "Mass/friction/object-position randomization", "pass", "20/20 existing scene-stability trials pass"),
+    ("CI", "Ubuntu 22.04 headless G1 contract pipeline", "pass", "GitHub Actions Run 31620798982: 24/24 + dynamics + cameras + contract SHA"),
     ("Vision", "Simulation-to-hardware camera calibration", "blocked", "G1 EDU camera intrinsics/extrinsics, mounts and time sync not measured"),
     ("Hardware", "Official joint/torque/current limits", "blocked", "must come from the exact G1 EDU controller and firmware"),
     ("Hardware", "Unitree feedback/command adapter", "todo", "low-level state, hold, watchdog and communication-loss behavior not implemented"),
