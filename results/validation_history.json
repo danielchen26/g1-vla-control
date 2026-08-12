@@ -148,5 +148,10 @@
     "time": "2026-08-12 13:15 EDT",
     "title": "G1 EDU validation run",
     "detail": "24/24 项自动测试、G1 contract baseline/adaptive、17 cm far→near phase coverage 和三路相机渲染全部通过；真实 LGG100 调用仍为 0。"
+  },
+  {
+    "time": "2026-08-12 13:18 EDT",
+    "title": "G1 EDU validation run",
+    "detail": "LGG100 选型与 G1 adaptive phase coverage 的 GitHub Actions Run 31621781332 已通过：Ubuntu headless 24/24、50-step dynamics、17 cm far→near、三路相机、contract SHA 与 artifacts 全部成功；真实 LGG100 调用仍为 0。"
   }
 ]
