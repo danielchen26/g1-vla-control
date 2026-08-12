@@ -163,5 +163,10 @@
     "time": "2026-08-12 11:12 EDT",
     "title": "Validation run",
     "detail": "结构化本地 VLA 路线图的 GitHub Actions Run 31610777954 已通过：Ubuntu headless 21/21、动力学、三路渲染、HTML 检查与 artifact 均成功；跨平台功能 CI 更新为 6/6。"
+  },
+  {
+    "time": "2026-08-12 12:09 EDT",
+    "title": "Validation run",
+    "detail": "新增独立 G1 最终部署 Tab：唯一生产目标确定为 OpenPI π0.5 Base + 自有 G1/Dex1 16-D 双臂 EEF LoRA；记录语音职责边界、Policy Contract、D0–D7 Gate workflow、GPU/机载拓扑、任务范围与真机分阶段门槛。"
   }
 ]
