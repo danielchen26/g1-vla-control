@@ -27,17 +27,23 @@ from safety_governor import G1TargetPreflight
 from stack_scene import REFERENCE_EP0_STATE, build_model, reset_to_reference_pose
 
 
-def build_contract_fixture():
+def build_contract_fixture(offset_m: np.ndarray | None = None):
     model = build_model()
     data = mujoco.MjData(model)
     reset_to_reference_pose(model, data)
     state = policy_state_from_mujoco(
         model, data, Dex1Controller(model).motor_states(data)
     )
-    # Move upward without defining a synthetic task objective. The synchronized
-    # reference pose starts near cubes, so contact is evaluated in grasp phase.
-    left_target = state[0:3].astype(np.float64) + np.array([0.000, 0.000, 0.080])
-    right_target = state[7:10].astype(np.float64) + np.array([0.000, 0.000, 0.080])
+    # The default short move checks precision. A separate 170 mm lift fixture
+    # covers both adaptive acceleration and deceleration regions.
+    offset_m = np.asarray(
+        [0.000, 0.000, 0.080] if offset_m is None else offset_m,
+        dtype=np.float64,
+    )
+    if offset_m.shape != (3,):
+        raise ValueError("fixture offset must have shape (3,)")
+    left_target = state[0:3].astype(np.float64) + offset_m
+    right_target = state[7:10].astype(np.float64) + offset_m
     chunk = make_reach_chunk(
         state[0:3], state[3:7], state[7:10], state[10:14],
         left_target, right_target,

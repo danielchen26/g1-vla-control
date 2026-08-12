@@ -135,16 +135,6 @@
     "detail": "Gate-A.2 提交的 GitHub Actions Run 31512781222 已通过：Ubuntu headless 17/17 测试、动力学、三路渲染、HTML 检查与 artifact 全部成功。"
   },
   {
-    "time": "2026-08-12 12:09 EDT",
-    "title": "Validation run",
-    "detail": "新增独立 G1 最终部署 Tab：唯一生产目标确定为 OpenPI π0.5 Base + 自有 G1/Dex1 16-D 双臂 EEF LoRA；记录语音职责边界、Policy Contract、D0–D7 Gate workflow、GPU/机载拓扑、任务范围与真机分阶段门槛。"
-  },
-  {
-    "time": "2026-08-12 12:11 EDT",
-    "title": "Validation run",
-    "detail": "G1 最终部署 Workflow 的 GitHub Actions Run 31616180656 已通过：Ubuntu headless 21/21、动力学、三路渲染、HTML 检查与 artifact 全部成功；跨平台功能 CI 更新为 7/7。"
-  },
-  {
     "time": "2026-08-12 13:02 EDT",
     "title": "G1 EDU validation run",
     "detail": "24/24 项自动测试、G1 EDU contract baseline/adaptive 全链路和三路相机渲染全部通过。"
@@ -153,5 +143,10 @@
     "time": "2026-08-12 13:06 EDT",
     "title": "G1 EDU validation run",
     "detail": "G1 EDU-only sim-to-real GitHub Actions Run 31620798982 已通过：Ubuntu headless 24/24、exact 50-step contract dynamics、三路 OSMesa、contract ID/SHA 与 artifact 全部成功。"
+  },
+  {
+    "time": "2026-08-12 13:15 EDT",
+    "title": "G1 EDU validation run",
+    "detail": "24/24 项自动测试、G1 contract baseline/adaptive、17 cm far→near phase coverage 和三路相机渲染全部通过；真实 LGG100 调用仍为 0。"
   }
 ]

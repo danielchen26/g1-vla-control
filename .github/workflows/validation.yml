@@ -35,6 +35,7 @@ jobs:
         run: |
           python run_simulation.py --baseline --output results/baseline.json
           python run_simulation.py --output results/adaptive.json
+          python g1_adaptive_phase_validation.py --output results/g1_adaptive_phase_validation.json
 
       - name: Three-camera render smoke test
         run: python render_camera_observations.py
@@ -43,12 +44,19 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          for path in ('results/baseline.json', 'results/adaptive.json'):
+          for path in (
+              'results/baseline.json', 'results/adaptive.json',
+              'results/g1_adaptive_phase_validation.json',
+          ):
               result = json.load(open(path))
               assert result['g1_policy_contract_id'] == 'g1_edu_dual_dex1_eef_v1'
               assert result['g1_contract_verified'] is True
               assert result['g1_hardware_execution_enabled'] is False
               assert result['success'] is True
+          phase = json.load(open('results/g1_adaptive_phase_validation.json'))
+          assert phase['coverage']['fast_when_far'] is True
+          assert phase['coverage']['slow_when_near'] is True
+          assert phase['comparison']['real_lgg100_behavior_proven'] is False
           PY
           python generate_report.py
           grep -q 'g1_edu_dual_dex1_eef_v1' validation_report.html

@@ -1,7 +1,7 @@
 {
   "g1_policy_contract_id": "g1_edu_dual_dex1_eef_v1",
-  "g1_policy_contract_version": "1.0.0",
-  "g1_policy_contract_sha256": "e73f9e69c280a7bb4ba77ba8eed1b50a1f2d7cc9bddd68aee97e3e01162a3809",
+  "g1_policy_contract_version": "1.1.0",
+  "g1_policy_contract_sha256": "9bf8a0ab404516df1fd541357ce7a43fe97dce77a0ebaf1627c455774f0f647d",
   "g1_contract_verified": true,
   "mode": "baseline",
   "trajectory_source": "deterministic_g1_contract_fixture_not_vla",

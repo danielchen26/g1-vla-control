@@ -48,14 +48,19 @@ def main() -> None:
     adaptive = run([
         sys.executable, "run_simulation.py", "--output", "results/adaptive.json"
     ])
+    adaptive_phase = run([
+        sys.executable, "g1_adaptive_phase_validation.py",
+        "--output", "results/g1_adaptive_phase_validation.json",
+    ])
     cameras = run([sys.executable, "render_camera_observations.py"])
     success = (
         baseline.returncode == 0
         and adaptive.returncode == 0
+        and adaptive_phase.returncode == 0
         and cameras.returncode == 0
     )
     detail = (
-        f"{test_count}/{test_count} 项自动测试、G1 EDU contract baseline/adaptive 全链路和三路相机渲染全部通过。"
+        f"{test_count}/{test_count} 项自动测试、G1 contract baseline/adaptive、17 cm far→near phase coverage 和三路相机渲染全部通过；真实 LGG100 调用仍为 0。"
         if success else
         "一个或多个动力学测试失败，请检查 JSON 证据和控制台输出。"
     )

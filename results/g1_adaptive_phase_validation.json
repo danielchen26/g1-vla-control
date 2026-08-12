@@ -1,0 +1,148 @@
+{
+  "g1_policy_contract_id": "g1_edu_dual_dex1_eef_v1",
+  "g1_policy_contract_version": "1.1.0",
+  "g1_policy_contract_sha256": "9bf8a0ab404516df1fd541357ce7a43fe97dce77a0ebaf1627c455774f0f647d",
+  "g1_contract_verified": true,
+  "scope": "G1-compatible deterministic far-to-near adaptive coverage; not neural VLA evidence.",
+  "trajectory_source": "deterministic_g1_contract_fixture_not_lgg100",
+  "real_lgg100_chunk_used": false,
+  "g1_hardware_execution_enabled": false,
+  "production_adaptive_enabled": false,
+  "lift_offset_m": [
+    0.0,
+    0.0,
+    0.17
+  ],
+  "preflight": {
+    "phase": "grasp",
+    "checked": 50,
+    "accepted": 50,
+    "all_accepted": true,
+    "reason_counts": {
+      "accepted": 50
+    }
+  },
+  "thresholds": {
+    "near_distance_m": 0.025,
+    "far_distance_m": 0.16,
+    "min_scale": 0.5,
+    "max_scale": 1.65
+  },
+  "coverage": {
+    "initial_distance_m": 0.17000000000000004,
+    "far_sample_count": 10,
+    "near_sample_count": 15,
+    "far_scale_min": 1.0,
+    "far_scale_median": 1.2999999999999998,
+    "far_scale_max": 1.5999999999999999,
+    "near_scale_min": 0.5,
+    "near_scale_median": 0.5,
+    "near_scale_max": 0.5,
+    "fast_when_far": true,
+    "slow_when_near": true,
+    "path_actions_byte_identical": true
+  },
+  "baseline": {
+    "scale": 1.0,
+    "filter_enabled": true,
+    "joint_filter_enabled": true,
+    "nominal_path_duration_s": 1.6333333333333333,
+    "simulated_duration_s": 3.634,
+    "hard_command_limits_pass": true,
+    "eef_hard_limits_pass": true,
+    "joint_hard_limits_pass": true,
+    "endpoint_error_m": 0.003140906404846755,
+    "minimum_pelvis_height_m": 0.79,
+    "forbidden_contact_step_rate": 0.0,
+    "free_space_contact_step_rate": 0.06879471656576774,
+    "manipulation_contact_step_rate": 0.0,
+    "free_space_contact_reason_counts": {
+      "dex_cube_outside_manipulation_phase": 125
+    },
+    "manipulation_contact_reason_counts": {},
+    "finite": true,
+    "worst_actual_joint_jerk_event": {
+      "time_s": 0.0,
+      "joint": "right_shoulder_roll_joint",
+      "jerk_rad_s3": 14984.859733529343,
+      "acceleration_rad_s2": -52.29127156348364,
+      "velocity_rad_s": -0.10458254312696728,
+      "free_space_contact_reasons": [],
+      "manipulation_contact_reasons": []
+    },
+    "maxima": {
+      "command_speed_m_s": 0.21121531667402058,
+      "command_acceleration_m_s2": 0.5175219402237454,
+      "command_jerk_m_s3": 3.979539036921876,
+      "command_angular_speed_rad_s": 0.12129655970596022,
+      "command_gripper_speed_rad_s": 2.015380751174689e-06,
+      "joint_command_speed_rad_s": 0.8517448592514631,
+      "joint_command_acceleration_rad_s2": 5.347711000025512,
+      "joint_command_jerk_rad_s3": 231.25925702194294,
+      "joint_command_speed_limit_ratio": 1.0000000000000722,
+      "joint_command_acceleration_limit_ratio": 1.000000000010688,
+      "joint_command_jerk_limit_ratio": 1.0000000000948845,
+      "actual_joint_speed_rad_s": 0.8549816288036695,
+      "actual_joint_acceleration_rad_s2": 52.29127156348364,
+      "actual_joint_jerk_rad_s3": 14984.859733529343,
+      "desired_to_filtered_position_lag_m": 0.02626413163486699,
+      "actual_to_filtered_position_error_m": 0.05892691830750833
+    }
+  },
+  "adaptive": {
+    "scale": 1.0,
+    "filter_enabled": true,
+    "joint_filter_enabled": true,
+    "nominal_path_duration_s": 2.05579380556374,
+    "simulated_duration_s": 4.056,
+    "hard_command_limits_pass": true,
+    "eef_hard_limits_pass": true,
+    "joint_hard_limits_pass": true,
+    "endpoint_error_m": 0.0005329089630000147,
+    "minimum_pelvis_height_m": 0.79,
+    "forbidden_contact_step_rate": 0.0,
+    "free_space_contact_step_rate": 0.04437869822485207,
+    "manipulation_contact_step_rate": 0.0,
+    "free_space_contact_reason_counts": {
+      "dex_cube_outside_manipulation_phase": 90
+    },
+    "manipulation_contact_reason_counts": {},
+    "finite": true,
+    "worst_actual_joint_jerk_event": {
+      "time_s": 0.0,
+      "joint": "right_shoulder_roll_joint",
+      "jerk_rad_s3": 14984.859733529343,
+      "acceleration_rad_s2": -52.29127156348364,
+      "velocity_rad_s": -0.10458254312696728,
+      "free_space_contact_reasons": [],
+      "manipulation_contact_reasons": []
+    },
+    "maxima": {
+      "command_speed_m_s": 0.2212553802734793,
+      "command_acceleration_m_s2": 0.806286533492866,
+      "command_jerk_m_s3": 6.613539796478244,
+      "command_angular_speed_rad_s": 0.1213224836211166,
+      "command_gripper_speed_rad_s": 2.015380751174689e-06,
+      "joint_command_speed_rad_s": 1.0198708083282437,
+      "joint_command_acceleration_rad_s2": 5.347711000025512,
+      "joint_command_jerk_rad_s3": 231.25925699418735,
+      "joint_command_speed_limit_ratio": 1.0000000000000522,
+      "joint_command_acceleration_limit_ratio": 1.000000000010688,
+      "joint_command_jerk_limit_ratio": 1.000000000076932,
+      "actual_joint_speed_rad_s": 1.0187444905227823,
+      "actual_joint_acceleration_rad_s2": 52.29127156348364,
+      "actual_joint_jerk_rad_s3": 14984.859733529343,
+      "desired_to_filtered_position_lag_m": 0.027912087446569384,
+      "actual_to_filtered_position_error_m": 0.0623906110171616
+    }
+  },
+  "comparison": {
+    "local_phase_behavior_passed": true,
+    "adaptive_faster_overall": false,
+    "duration_delta_s": 0.42200000000000015,
+    "real_lgg100_behavior_proven": false,
+    "task_level_benefit_proven": false
+  },
+  "success": true,
+  "verdict": "G1 mechanics covered both regions: faster while far and slower while near. Overall completion was not faster, and no real LGG100 chunk was used."
+}

@@ -31,6 +31,11 @@ class G1PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(ACTION_HORIZON, 50)
         self.assertEqual(POLICY_RATE_HZ, 30.0)
+        self.assertEqual(
+            parsed["production_policy"]["model"],
+            "LGG100/stack-cube-eef-24k",
+        )
+        self.assertFalse(parsed["production_policy"]["simulation_execution_allowed"])
         self.assertFalse(parsed["robot"]["locomotion_controlled_by_policy"])
         self.assertFalse(parsed["robot"]["torso_controlled_by_policy"])
         with self.assertRaises(ValueError):

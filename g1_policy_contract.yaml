@@ -1,7 +1,16 @@
 {
   "contract_id": "g1_edu_dual_dex1_eef_v1",
-  "contract_version": "1.0.0",
+  "contract_version": "1.1.0",
   "status": "project_frozen",
+  "production_policy": {
+    "model": "LGG100/stack-cube-eef-24k",
+    "revision": "cced7a7ff7b454fdcac555457a1a2a3dc262ac77",
+    "framework": "OpenPI_pi0.5_candidate_restore",
+    "selection_status": "selected_by_user",
+    "g1_semantic_verification": "pending_author_config_or_golden_sample",
+    "simulation_execution_allowed": false,
+    "hardware_execution_allowed": false
+  },
   "robot": {
     "manufacturer": "Unitree",
     "model": "G1 Education",

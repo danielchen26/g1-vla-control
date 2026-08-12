@@ -17,7 +17,7 @@ cam_left_high + cam_left_wrist + cam_right_wrist
                     +
 pelvis-frame 16-D EEF/Dex1 state + canonical prompt
                     ↓
-π0.5 Base + pi05_g1_edu_dual_eef LoRA
+LGG100/stack-cube-eef-24k · pinned revision cced7a…
                     ↓
 pelvis-frame 16-D absolute EEF/Dex1 action chunk
                     ↓
@@ -130,7 +130,12 @@ python render_camera_observations.py
 
 ## Adaptive Speed
 
-Adaptive 仍是可选模块，不是默认生产路径。当前 contract fixture 中 adaptive 比 baseline 更慢，因此保持关闭。只有满足以下配对条件才可进入 G1：
+Adaptive 仍是可选模块，不是默认生产路径。证据分为两层：
+
+- 8 cm precision fixture 没进入 16 cm far zone，scale 只有 `0.5–1.0×`，整体慢约 29.3%；它没有覆盖“该快时快”。
+- 新增 17 cm G1 lift coverage：50/50 preflight，far 区 scale 中位 `1.30×`、最大 `1.60×`，near 区 `0.50×`。它证明确定性 G1 路径局部做到了“该快时快、该慢时慢”，但整体仍比 baseline 慢约 0.422 s。
+
+这两项都没有使用真实 LGG100 chunk，因此 production adaptive 继续关闭。只有满足以下配对条件才可进入 G1：
 
 - 使用同一个 G1 neural chunk；
 - task success 不下降；
@@ -139,11 +144,18 @@ Adaptive 仍是可选模块，不是默认生产路径。当前 contract fixture
 - 完成时间分布真实改善；
 - G1 官方 limits、低层反馈和 watchdog 已接入。
 
-## Neural Policy 资格
+## 生产 VLA：LGG100
 
-只有 metadata 同时匹配 contract ID、version、SHA，并有受审计的训练 transform/golden sample，才允许进入 MuJoCo dynamics。
+生产模型确定为：
 
-`LGG100/stack-cube-eef-24k` 虽然发布 16-D norm stats 和真实 Orbax 权重，但没有作者 config、joint↔EEF transform 或 golden sample。因此当前严格标记：
+```text
+repo: LGG100/stack-cube-eef-24k
+revision: cced7a7ff7b454fdcac555457a1a2a3dc262ac77
+```
+
+不再切换到其他 VLA。下一步是在 Ubuntu NVIDIA 上严格恢复 LGG100 真实 Orbax 权重，并用 G1 三路 observation 做 output-only inference。
+
+只有 metadata 同时匹配 contract ID、version、SHA，并有受审计的训练 transform/golden sample，才允许进入 MuJoCo dynamics。LGG100 虽然发布 16-D norm stats 和真实 Orbax 权重，但没有作者 config、joint↔EEF transform 或 golden sample。因此当前严格标记：
 
 ```text
 g1_contract_verified=false
@@ -151,15 +163,15 @@ g1_action_compatible=false
 g1_sim_eligible=false
 ```
 
-它可以做真实权重 output-only 审计，不能因为 shape 是 16-D 就送入 G1 simulation 或硬件。隔离说明见 [`LGG100_REAL_VLA.md`](LGG100_REAL_VLA.md)。最终生产 policy 仍是我们拥有完整契约的 `π0.5 Base + pi05_g1_edu_dual_eef LoRA`。
+这不是放弃 LGG100，而是它的第一道接入 Gate：先 output-only 恢复真实权重，再验证语义，然后进入 MuJoCo。不能因为 shape 是 16-D 就直接执行。完整步骤见 [`LGG100_REAL_VLA.md`](LGG100_REAL_VLA.md)。
 
 ## MuJoCo → G1 EDU Gates
 
 1. **D0 Contract**：冻结 YAML、validators、round-trip fixtures。
 2. **D1 Hardware parity**：确认 G1 EDU firmware/SDK/control mode、相机标定、EEF site、joint IDs、官方 limits。
 3. **D2 Dataset**：100 episodes 转换为冻结 16-D contract，episode-level split，无 frame leakage。
-4. **D3 G1 LoRA**：训练并记录 OpenPI commit、config、seed、normalization、checkpoint hash、golden sample。
-5. **D4 Offline**：真实 policy chunk 只保存，不执行；schema/timing/IK/collision 全部通过。
+4. **D3 LGG100 Restore**：Ubuntu NVIDIA strict Orbax restore，固定 HF/OpenPI revision，恢复并验证 config/transform/golden sample。
+5. **D4 Offline**：真实 LGG100 chunk 只保存，不执行；schema/timing/IK/collision 全部通过。
 6. **D5 MuJoCo closed loop**：multi-chunk、任务成功率、随机化、网络 jitter、stale/断线。
 7. **D6 Shadow/HIL**：真机 observation 输入 policy，机器人保持 hold，只记录建议 action。
 8. **D7 Staged hardware**：E-stop 和支撑下逐步执行单臂、双臂、桌面、轻物体、已训练任务。

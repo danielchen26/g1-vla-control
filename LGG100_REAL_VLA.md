@@ -1,10 +1,10 @@
-# LGG100 real-weight quarantine audit for G1 EDU
+# LGG100 production VLA integration for G1 EDU
 
-This runbook loads the actual public weights from
-`LGG100/stack-cube-eef-24k` and queries them with the frozen G1 EDU observation
-contract. It does **not** currently permit MuJoCo dynamics or G1 hardware
-execution because the checkpoint's unpublished action semantics have not been
-verified against `g1_edu_dual_dex1_eef_v1`.
+`LGG100/stack-cube-eef-24k` is the selected production VLA. This runbook loads
+the actual public weights and queries them with the frozen G1 EDU observation
+contract. The current first stage is output-only: MuJoCo dynamics and G1
+hardware remain blocked until the checkpoint's unpublished action semantics
+are verified against `g1_edu_dual_dex1_eef_v1`.
 
 ## Evidence boundary
 
